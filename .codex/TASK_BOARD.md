@@ -144,6 +144,12 @@
 - 验证结果：本地构建与类型检查通过；基本执行路径静态检查通过（需在运行时环境以 D1 数据与 AI Core 集成做动态验证）
 
 | Task-403 | AI Queue 重试机制 | ✅ Completed | 实现重试字段、repo/service 扩展、Worker 重试/退避逻辑 |
+| Task-404 | AI Queue 优先级系统 | ✅ Completed | 实现 priority 字段优先级调度：high/normal/low，Repository/Worker 顺序调整 |
+
+### Task-404 完成记录
+- 完成内容：在 Repository 中实现基于 priority（high>normal>low）和 created_at 的任务选取排序逻辑；类型补充并在 Service 默认 priority 为 'normal'。
+- 变更文件：shared/services/ai_queue_repository.ts, shared/services/ai_queue_service.ts, shared/services/ai_queue_worker.ts (保证使用新排序)、shared/types/ai_queue.ts
+- 验证结果：本地 build 与 typecheck 通过；优先级排序 SQL 为 CASE WHEN 实现，兼容 D1/SQLite。
 
 ### Task-403 完成记录
 - 完成内容：增加 retry_count/max_retry/next_retry_at 字段（migration），扩展 repository/service，Worker 实现重试计数与指数退避策略（10s、30s、5min）。

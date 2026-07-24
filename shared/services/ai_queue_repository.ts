@@ -73,7 +73,11 @@ export class AIQueueRepository {
   async lockNextPending(workerId: string) {
     // Attempt to atomically claim a pending task for this worker
     // Note: D1 doesn't support RETURNING; emulate with select then update under optimistic approach
-    const row = await this.env.DB.prepare("SELECT id FROM ai_tasks WHERE status = 'pending' AND (next_retry_at IS NULL OR next_retry_at <= CURRENT_TIMESTAMP) ORDER BY priority = 'high' DESC, priority = 'normal' DESC, created_at ASC LIMIT 1").get();
+    // Order by priority: high > normal > low, then FIFO by created_at
+    const row = await this.env.DB.prepare(
+      "SELECT id FROM ai_tasks WHERE status = 'pending' AND (next_retry_at IS NULL OR next_retry_at <= CURRENT_TIMESTAMP) " +
+      "ORDER BY CASE priority WHEN 'high' THEN 3 WHEN 'normal' THEN 2 WHEN 'low' THEN 1 ELSE 2 END DESC, created_at ASC LIMIT 1"
+    ).get();
     if (!row) return null;
     const id = row.id;
     // Try to lock
@@ -84,7 +88,7 @@ export class AIQueueRepository {
   }
 
   async getRetryableTasks(limit = 50) {
-    const rows = await this.env.DB.prepare("SELECT * FROM ai_tasks WHERE status = 'pending' AND (next_retry_at IS NULL OR next_retry_at <= CURRENT_TIMESTAMP) ORDER BY next_retry_at ASC LIMIT ?").all(limit);
+    const rows = await this.env.DB.prepare("SELECT * FROM ai_tasks WHERE status = 'pending' AND (next_retry_at IS NULL OR next_retry_at <= CURRENT_TIMESTAMP) ORDER BY CASE priority WHEN 'high' THEN 3 WHEN 'normal' THEN 2 WHEN 'low' THEN 1 ELSE 2 END DESC, created_at ASC LIMIT ?").all(limit);
     return rows.map((r: any) => this.mapRowToTask(r));
   }
 
