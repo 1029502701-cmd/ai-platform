@@ -30,7 +30,17 @@ async function ensureRegistry(env: any) {
     await initAIService(env);
     // Register mock provider for local/dev testing
     registerProvider('mock', MockProvider);
-    console.log('[AI Core] registry and mock provider initialized');
+    // Dynamically import and register OpenAI adapter (only when adapter exists)
+    try {
+      const mod = await import('./ai_provider_adapters_openai');
+      if (mod && mod.OpenAIProvider) {
+        registerProvider('openai', new mod.OpenAIProvider(env || undefined));
+        console.log('[AI Core] openai provider registered');
+      }
+    } catch (e) {
+      // OpenAI adapter not available (e.g., bundler excluded it) — ignore
+    }
+    console.log('[AI Core] registry and providers initialized');
   } catch (err: any) {
     console.error('[AI Core] init failed:', err.message);
   }
@@ -101,4 +111,3 @@ export async function generateViaCore(env: any, coreReq: CoreRequest): Promise<C
     return { requestId, ok: false, error: e.message || 'AI_CORE_ERROR', timings: { duration: Date.now() - start } };
   }
 }
-
