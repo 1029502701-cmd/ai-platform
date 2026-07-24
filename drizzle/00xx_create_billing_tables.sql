@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS ai_usage (
   credits_used INTEGER DEFAULT 0,
   cost_usd REAL DEFAULT 0,
   status TEXT DEFAULT 'pending',
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  transaction_id TEXT UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS ai_pricing (

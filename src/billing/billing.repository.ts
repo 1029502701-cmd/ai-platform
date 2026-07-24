@@ -33,15 +33,21 @@ export class BillingRepository {
     return row;
   }
 
-  async createUsageRecord(u: Omit<AIUsage, 'id' | 'created_at'> & { id?: string }): Promise<AIUsage> {
+  async createUsageRecord(u: Omit<AIUsage, 'id' | 'created_at'> & { id?: string; transaction_id?: string }): Promise<AIUsage> {
     const id = u.id ?? `usage_${Date.now().toString(36)}`;
     const now = new Date().toISOString();
-    await this.db.prepare("INSERT INTO ai_usage (id, user_id, service, model, input_tokens, output_tokens, credits_used, cost_usd, status, created_at) VALUES (?,?,?,?,?,?,?,?,?,?)").bind(id, u.user_id, u.service, u.model, u.input_tokens, u.output_tokens, u.credits_used, u.cost_usd, u.status, now).run();
+    // transaction_id optional
+    await this.db.prepare("INSERT INTO ai_usage (id, user_id, service, model, input_tokens, output_tokens, credits_used, cost_usd, status, created_at, transaction_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)").bind(id, u.user_id, u.service, u.model, u.input_tokens, u.output_tokens, u.credits_used, u.cost_usd, u.status, now, (u as any).transaction_id ?? null).run();
     return { id, created_at: now, ...u } as AIUsage;
   }
 
   async getPricing(service: string, model: string): Promise<AIPricing | null> {
     const row = await this.db.prepare("SELECT * FROM ai_pricing WHERE service = ? AND model = ? AND enabled = 1 ORDER BY created_at DESC LIMIT 1").bind(service, model).first();
+    return row ?? null;
+  }
+
+  async getUsageByTransactionId(transactionId: string) {
+    const row = await this.db.prepare("SELECT * FROM ai_usage WHERE transaction_id = ? LIMIT 1").bind(transactionId).first();
     return row ?? null;
   }
 }

@@ -17,17 +17,30 @@ export class BillingService {
     return w;
   }
 
-  async consumeCredits(userId: string, credits: number): Promise<Wallet> {
+  async consumeCredits(userId: string, credits: number, transactionId?: string): Promise<{ success: boolean; remaining: number }> {
     if (credits <= 0) throw new Error('invalid_credits_amount');
+    // Idempotency: if transactionId provided and exists, don't double charge
+    if (transactionId) {
+      const existing = await this.repo.getUsageByTransactionId(transactionId);
+      if (existing) {
+        // already processed
+        return { success: true, remaining: (await this.checkBalance(userId)).credits };
+      }
+    }
     const wallet = await this.checkBalance(userId);
     if (wallet.credits < credits) throw new Error('insufficient_credits');
+    // perform atomic update via repository
     const updated = await this.repo.updateCredits(userId, -credits);
-    return updated;
+    // record usage with transaction id if provided
+    await this.repo.createUsageRecord({ user_id: userId, service: 'billing_consumption', model: '', input_tokens: 0, output_tokens: 0, credits_used: credits, cost_usd: 0, status: 'completed', transaction_id: transactionId });
+    return { success: true, remaining: updated.credits };
   }
 
   async refundCredits(userId: string, credits: number): Promise<Wallet> {
     if (credits <= 0) throw new Error('invalid_credits_amount');
     const updated = await this.repo.updateCredits(userId, credits);
+    // record negative usage or refund event as usage with negative credits_used
+    await this.repo.createUsageRecord({ user_id: userId, service: 'billing_refund', model: '', input_tokens: 0, output_tokens: 0, credits_used: -credits, cost_usd: 0, status: 'completed' });
     return updated;
   }
 
