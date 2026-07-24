@@ -3,7 +3,8 @@ import { hasRoleForRequest } from '../../../../shared/services/permission';
 
 export const onRequestPost = async (context: any) => {
   const { request } = context;
-  const body = await request.json();
+  const text = await request.text();
+  const body = text ? JSON.parse(text) :{};
   if (!body.versionId) return new Response(JSON.stringify({ success: false, error: 'INVALID_PAYLOAD' }), { status: 400 });
   const isAdmin = await hasRoleForRequest('admin', { env: context.env, request }).catch(() => false);
   if (!isAdmin) return new Response(JSON.stringify({ success: false, error: 'UNAUTHORIZED' }), { status: 403 });

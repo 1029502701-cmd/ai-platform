@@ -4,7 +4,8 @@ export const onRequestPost = async (context: any) => {
   const { request } = context;
   const isAdmin = request.headers.get('X-Admin') === 'true';
   if (!isAdmin) return new Response(JSON.stringify({ success: false, error: 'UNAUTHORIZED' }), { status: 403 });
-  const body = await request.json();
+  const text = await request.text();
+  const body = text ? JSON.parse(text) :{};
   if (!body.modelId || !body.provider || !body.providerModelName) return new Response(JSON.stringify({ success: false, error: 'INVALID_PAYLOAD' }), { status: 400 });
   try {
     await createOrUpdateModelInDB(context.env, { modelId: body.modelId, provider: body.provider, providerModelName: body.providerModelName, defaultParams: body.defaultParams, priority: body.priority, status: body.status });

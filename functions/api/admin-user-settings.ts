@@ -49,7 +49,7 @@ export const onRequestPost = async (context: RequestContext) => {
 
   let body: unknown;
   try {
-    body = await request.json();
+body = JSON.parse(await request.text() || "{}")
   } catch {
     return jsonResponse({ code: "INVALID_JSON", message: "Request body must be JSON" }, 400);
   }

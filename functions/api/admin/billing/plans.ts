@@ -1,5 +1,5 @@
 import { hasRoleForRequest } from '../../../../shared/services/permission';
-import { PlanRepository } from '../../../../src/billing/plan.repository';
+import { PlanRepository } from '../../../../shared/services/plan.repository';
 
 export const onRequestGet = async (context:any) => {
   const { env, request } = context;

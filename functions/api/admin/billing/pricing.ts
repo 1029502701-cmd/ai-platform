@@ -12,7 +12,8 @@ export const onRequestPost = async (context:any) => {
   const { env, request } = context;
   const ok = await hasRoleForRequest('admin', { env, request });
   if (!ok) return new Response(JSON.stringify({ success:false, error:{ code:'FORBIDDEN', message:'admin only' } }), { status:403, headers:{ 'Content-Type':'application/json' } });
-  const body = await request.json().catch(()=>({}));
+    const text = await request.text();
+  const body = JSON.parse(text ||"{}");
   const { id, service, model, credits, cost_usd, enabled } = body;
   if (!service || !model || typeof cost_usd !== 'number') return new Response(JSON.stringify({ success:false, error:{ code:'BAD_REQUEST', message:'service, model, cost_usd required' } }), { status:400, headers:{ 'Content-Type':'application/json' } });
   const now = new Date().toISOString();

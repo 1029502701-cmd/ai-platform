@@ -7,7 +7,8 @@ export const onRequestPost = async (context: any) => {
   const isAdmin = await hasRoleForRequest('admin', { env, request }).catch(() => false);
   if (!isAdmin) return new Response(JSON.stringify({ success: false, error: 'UNAUTHORIZED' }), { status: 403 });
 
-  const body = await request.json();
+  const text = await request.text();
+  const body = text ? JSON.parse(text) :{};
   if (!body.key) return new Response(JSON.stringify({ success: false, error: 'INVALID_PAYLOAD' }), { status: 400 });
   try {
     await createPromptInDB(context.env, { key: body.key, name: body.name, category: body.category, variables_schema: body.variables_schema, created_by: body.created_by });

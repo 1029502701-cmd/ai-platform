@@ -37,7 +37,8 @@ export const onRequestPost = async (context: RequestContext) => {
 
   let body: UpdateUserRoleBody;
   try {
-    body = (await request.json()) as UpdateUserRoleBody;
+    const text = await request.text();
+    body = text ? (JSON.parse(text) as UpdateUserRoleBody) : {};
   } catch {
     return jsonResponse({ code: "INVALID_BODY", message: "Request body must be valid JSON" }, 400);
   }

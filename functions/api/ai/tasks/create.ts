@@ -3,7 +3,8 @@ import { AIQueueService } from '../../../../shared/services/ai_queue_service';
 export const onRequestPost = async (context: any) => {
   const { request, env } = context;
   try {
-    const body = await request.json();
+    const text = await request.text();
+  const body = text ? JSON.parse(text) :{};
     const { taskType, payload, priority, max_retry } = body || {};
     if (!taskType) {
       return new Response(JSON.stringify({ success: false, error: { code: 'INVALID_PARAMS', message: 'taskType is required' } }), { status: 400, headers: { 'Content-Type': 'application/json' } });

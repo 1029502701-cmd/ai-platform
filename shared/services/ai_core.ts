@@ -1,11 +1,13 @@
-import { generateTextWithPipeline, generateChatWithPipeline } from './ai_service';
-import { BillingMiddleware } from '../../src/billing/billing.middleware';
+﻿import { generateTextWithPipeline, generateChatWithPipeline } from './ai_service';
+import { BillingMiddleware } from './billing_middleware';
+import { initAIService, registerProvider } from './ai_provider_service';
+import { MockProvider } from './ai_provider_adapters_mock';
 
 export type CoreRequest = {
   requestId?: string;
   userId?: string;
   scenario?: string;
-  aiRequest?: any; // AIRequest
+  aiRequest?: any;
 };
 
 export type CoreResponse = {
@@ -16,77 +18,87 @@ export type CoreResponse = {
   timings?: any;
 };
 
+let _registryInitialized = false;
+
 function makeRequestId() {
-  return 'req_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2,8);
+  return 'req_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 8);
+}
+
+async function ensureRegistry(env: any) {
+  if (_registryInitialized) return;
+  try {
+    await initAIService(env);
+    // Register mock provider for local/dev testing
+    registerProvider('mock', MockProvider);
+    console.log('[AI Core] registry and mock provider initialized');
+  } catch (err: any) {
+    console.error('[AI Core] init failed:', err.message);
+  }
+  _registryInitialized = true;
 }
 
 export async function generateViaCore(env: any, coreReq: CoreRequest): Promise<CoreResponse> {
   const requestId = coreReq.requestId || makeRequestId();
   const start = Date.now();
   try {
-    // determine model via scenario or aiRequest.model
+    await ensureRegistry(env);
+
     let modelId = coreReq.aiRequest?.model;
     if (!modelId && coreReq.scenario) {
-      // read scenario mapping from DB
       try {
-        const row = await env.DB.prepare('SELECT default_model_id, default_prompt_key, default_kb_key FROM ai_scenarios WHERE scenario_key = ?').get(coreReq.scenario);
-        if (row) {
-          modelId = modelId || row.default_model_id;
-          coreReq.aiRequest = coreReq.aiRequest || {};
-          coreReq.aiRequest.promptKey = coreReq.aiRequest.promptKey || row.default_prompt_key;
-          coreReq.aiRequest.knowledgeBaseId = coreReq.aiRequest.knowledgeBaseId || row.default_kb_key;
-        }
-      } catch (e) {
-        // ignore and proceed
-      }
+        const row = await env.DB.prepare('SELECT default_model_id FROM ai_scenarios WHERE scenario_key = ?').get(coreReq.scenario);
+        if (row) modelId = row.default_model_id;
+      } catch (e) {}
     }
 
-    // Attach userId to aiRequest
     coreReq.aiRequest = coreReq.aiRequest || {};
     if (coreReq.userId) coreReq.aiRequest.userId = coreReq.userId;
 
-    // Billing middleware: run before request
     const billing = new BillingMiddleware(env.DB);
     let billingContext: any = null;
     try {
-      const svcName = coreReq.aiRequest.service || 'ai';
-      const modelName = coreReq.aiRequest.model || modelId || 'default';
-      billingContext = await billing.beforeAIRequest(coreReq.userId || 'anonymous', svcName, modelName);
+      billingContext = await billing.beforeAIRequest(
+        coreReq.userId || 'anonymous',
+        coreReq.aiRequest.service || 'ai',
+        coreReq.aiRequest.model || modelId || 'default'
+      );
     } catch (bErr: any) {
-      // insufficient credits or billing error -> return error response without calling AI Service
-      const duration = Date.now() - start;
-      return { requestId, ok: false, error: bErr.message || 'BILLING_ERROR', timings: { duration } };
+      return { requestId, ok: false, error: bErr.message || 'BILLING_ERROR', timings: { duration: Date.now() - start } };
     }
 
-    // Choose chat or text based on presence of messages
     let resp;
     try {
-      if (coreReq.aiRequest && coreReq.aiRequest.messages && coreReq.aiRequest.messages.length) {
+      if (coreReq.aiRequest.messages?.length) {
         resp = await generateChatWithPipeline(env, coreReq.aiRequest);
       } else {
         resp = await generateTextWithPipeline(env, coreReq.aiRequest);
       }
-    } catch (e) {
-      // On AI error, refund
-      try { if (billingContext) await billing.onFailure(coreReq.userId || 'anonymous', billingContext.credits); } catch (_) {}
-      const duration = Date.now() - start;
-      return { requestId, ok: false, error: (e as any)?.message || 'AI_CORE_ERROR', timings: { duration } };
+    } catch (e: any) {
+      try {
+        if (billingContext && billingContext.credits > 0) await billing.onFailure(coreReq.userId || 'anonymous', billingContext.credits);
+      } catch (_) {}
+      return { requestId, ok: false, error: e.message || 'AI_CORE_ERROR', timings: { duration: Date.now() - start } };
     }
 
-    // On success: log usage
-    try {
-      const inputTokens = resp?.usage?.prompt_tokens ?? 0;
-      const outputTokens = resp?.usage?.completion_tokens ?? 0;
-      await billing.afterAIResponse(coreReq.userId || 'anonymous', coreReq.aiRequest.service || 'ai', coreReq.aiRequest.model || modelId || 'default', inputTokens, outputTokens, billingContext);
-    } catch (logErr) {
-      // Log and continue
-      console.error('[AI Core] billing logging error', logErr);
+    if (billingContext && billingContext.credits > 0) {
+      try {
+        const inputTokens = resp?.usage?.prompt_tokens ?? 0;
+        const outputTokens = resp?.usage?.completion_tokens ?? 0;
+        await billing.afterAIResponse(
+          coreReq.userId || 'anonymous',
+          coreReq.aiRequest.service || 'ai',
+          coreReq.aiRequest.model || modelId || 'default',
+          inputTokens, outputTokens, billingContext
+        );
+      } catch (logErr) {
+        console.error('[AI Core] billing log error', logErr);
+      }
     }
 
-    const duration = Date.now() - start;
-    return { requestId, ok: true, data: resp, timings: { duration } };
+    return { requestId, ok: true, data: resp, timings: { duration: Date.now() - start } };
   } catch (e: any) {
-    const duration = Date.now() - start;
-    return { requestId, ok: false, error: e.message || 'AI_CORE_ERROR', timings: { duration } };
+    console.error('[AI Core] unexpected error:', e.message);
+    return { requestId, ok: false, error: e.message || 'AI_CORE_ERROR', timings: { duration: Date.now() - start } };
   }
 }
+

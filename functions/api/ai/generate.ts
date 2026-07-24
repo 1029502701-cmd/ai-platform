@@ -2,7 +2,8 @@ import { generateViaCore } from '../../../shared/services/ai_core';
 
 export const onRequestPost = async (context: any) => {
   const { request } = context;
-  const body = await request.json();
+  const text = await request.text();
+  const body = text ? JSON.parse(text) :{};
   try {
     const res = await generateViaCore(context.env, { aiRequest: body });
     if (!res.ok) return new Response(JSON.stringify({ success: false, error: res.error }), { status: 500 });

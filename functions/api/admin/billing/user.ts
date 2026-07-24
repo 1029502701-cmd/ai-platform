@@ -1,5 +1,5 @@
 import { hasRoleForRequest } from '../../../../shared/services/permission';
-import { SubscriptionService } from '../../../../src/billing/subscription.service';
+import { SubscriptionService } from '../../../../shared/services/subscription.service';
 
 export const onRequestGet = async (context:any) => {
   const { env, request } = context;

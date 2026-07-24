@@ -48,7 +48,8 @@ export const onRequestPatch = async (context: RequestContext) => {
 
   let body: unknown;
   try {
-    body = await context.request.json();
+    const text = await context.request.text();
+      body = text ? JSON.parse(text) : {};
   } catch {
     return jsonResponse({ code: "INVALID_JSON", message: "Request body must be valid JSON" }, 400);
   }

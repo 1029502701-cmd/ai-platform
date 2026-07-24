@@ -43,7 +43,8 @@ export const onRequestPatch = async (context: RequestContext) => {
 
   let body: unknown;
   try {
-    body = await request.json();
+    const text = await request.text();
+      body = text ? JSON.parse(text) : {};
   } catch {
     return jsonResponse({ code: "INVALID_JSON", message: "Request body must be valid JSON" }, 400);
   }
@@ -78,7 +79,8 @@ export const onRequestPut = async (context: RequestContext) => {
 
   let body: unknown;
   try {
-    body = await request.json();
+    const text = await request.text();
+      body = text ? JSON.parse(text) : {};
   } catch {
     return jsonResponse({ code: "INVALID_JSON", message: "Request body must be valid JSON" }, 400);
   }

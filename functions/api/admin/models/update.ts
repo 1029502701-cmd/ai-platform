@@ -4,7 +4,8 @@ export const onRequestPut = async (context: any) => {
   const { request } = context;
   const isAdmin = request.headers.get('X-Admin') === 'true';
   if (!isAdmin) return new Response(JSON.stringify({ success: false, error: 'UNAUTHORIZED' }), { status: 403 });
-  const body = await request.json();
+  const text = await request.text();
+  const body = text ? JSON.parse(text) :{};
   if (!body.modelId) return new Response(JSON.stringify({ success: false, error: 'INVALID_PAYLOAD' }), { status: 400 });
   try {
     if (body.status) {
