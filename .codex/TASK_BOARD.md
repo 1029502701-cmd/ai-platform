@@ -127,4 +127,4 @@
 | Task-201 | 建立平台认证系统基础架构 | ✅ Completed | 已完成 D1 会话迁移、KV opaque Session、认证 Cookie、Session API 和基础 RBAC |
 | Task-202 | 建立平台用户资料系统 | ✅ Completed | 已完成用户 Profile 查询、白名单更新、输入验证和同源 API |
 | Task-203 | 建立平台权限管理基础 | ✅ Completed | 已完成 RBAC 基础表迁移、权限校验服务、Admin 角色查询与用户角色分配/撤销 API |
-| Task-204 | 建立用户设置系统 | ✅ In Progress | 开发中：迁移 + shared modules + API 实施 |
+| Task-204 | 建立用户设置系统 | ✅ Completed | 已完成迁移、shared modules、KV 缓存与 API（用户与 Admin）实现 |
