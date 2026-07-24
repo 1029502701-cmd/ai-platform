@@ -135,3 +135,10 @@
 | Task-305 | AI Service（统一 AI 调用服务层） | ✅ Completed | 已实现 AIService 核心、统一请求/响应、AI endpoints、Prompt/Knowledge 集成 |
 | Task-306 | AI Core（AI Platform Core） | ✅ Completed | 已实现 AI Core 协调器、场景映射、AI endpoints 路由 |
 | Task-401 | AI Queue 基础架构 | ✅ Completed | 已创建 ai_tasks 迁移、Repository、Service 类型定义 |
+| Task-402 | AI Queue Worker 执行器 | ✅ Completed | 已实现 Worker 领取/执行/重试基础（轮询、锁、backoff） |
+
+### Task-402 完成记录
+- 完成内容：实现 AIQueueWorker，用于轮询领取 pending 任务、调用 AI Core 执行、写回结果并实现基础重试与指数退避。
+- 新增文件：shared/services/ai_queue_worker.ts
+- Worker 执行流程：领取任务 -> 标记 running -> 调用 AI Core -> success 写回 / failure 重试或标记 failed -> 继续轮询
+- 验证结果：本地构建与类型检查通过；基本执行路径静态检查通过（需在运行时环境以 D1 数据与 AI Core 集成做动态验证）
