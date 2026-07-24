@@ -1,0 +1,38 @@
+﻿# Ignore dependency directories
+node_modules/
+
+# Cloudflare local dev
+.dev.vars
+.wrangler/
+
+# Build output
+dist/
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment files (except example)
+.env
+!.env.example
+
+# Test coverage
+coverage/
+*.lcov
+
+# Platform-specific cache
+.cache/
+.vite/
+pnpm-lock.yaml

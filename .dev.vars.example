@@ -1,0 +1,19 @@
+﻿# Cloudflare environment variables for local development.
+# Copy to .dev.vars and fill in real values before running locally.
+# NEVER commit this file with real secrets!
+
+# OpenAI API Key
+OPENAI_API_KEY=sk-placeholder-openai-key
+
+# Anthropic API Key (for future)
+ANTHROPIC_API_KEY=sk-placeholder-anthropic-key
+
+# Google AI API Key (for future)
+GOOGLE_AI_API_KEY=sk-placeholder-google-key
+
+# JWT Secret (change to a strong random string)
+JWT_SECRET=your-jwt-secret-change-me
+
+# AI Provider Selection (default: openai, fallback: anthropic, gemini, deepseek, qwen, openrouter)
+DEFAULT_AI_PROVIDER=openai
+FALLBACK_AI_PROVIDERS=anthropic,gemini
