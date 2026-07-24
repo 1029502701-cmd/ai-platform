@@ -128,3 +128,4 @@
 | Task-202 | 建立平台用户资料系统 | ✅ Completed | 已完成用户 Profile 查询、白名单更新、输入验证和同源 API |
 | Task-203 | 建立平台权限管理基础 | ✅ Completed | 已完成 RBAC 基础表迁移、权限校验服务、Admin 角色查询与用户角色分配/撤销 API |
 | Task-204 | 建立用户设置系统 | ✅ Completed | 已完成迁移、shared modules、KV 缓存与 API（用户与 Admin）实现 |
+| Task-301 | AI 提供商抽象层（Provider Abstraction） | ✅ Completed | 已完成 OpenAI 适配器、Registry D1/KV 加载、迁移与基础超时/重试 |
