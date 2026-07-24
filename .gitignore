@@ -26,7 +26,7 @@ npm-debug.log*
 
 # Environment files (except example)
 .env
-!.env.example
+!.dev.vars.example
 
 # Test coverage
 coverage/
@@ -35,4 +35,7 @@ coverage/
 # Platform-specific cache
 .cache/
 .vite/
+
+# Package locks - use npm, not pnpm
 pnpm-lock.yaml
+
