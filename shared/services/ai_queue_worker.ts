@@ -26,6 +26,12 @@ export class AIQueueWorker {
           await this.sleep(this.pollingIntervalMs);
           continue;
         }
+        // Basic protection: if task is in an unexpected state, skip
+        if (task.status !== 'pending') {
+          console.warn(`[AIQueueWorker] skipping task ${task.id} in unexpected state ${task.status}`);
+          await this.sleep(100);
+          continue;
+        }
         await this.handleTask(task);
       } catch (e: any) {
         // Log and continue
@@ -47,14 +53,25 @@ export class AIQueueWorker {
     try {
       // task.payload expected to be AIRequest-like
       const userId = typeof task.created_by === 'string' ? task.created_by : undefined;
-      const coreResp = await generateViaCore(this.env, { aiRequest: task.payload, userId });
-      if (coreResp.ok) {
-        result = coreResp.data;
-        await this.service.markSuccess(task.id, result);
-      } else {
-        // treat as failure
-        const err = coreResp.error || 'ai_core_error';
-        await this.onTaskFailure(task, err);
+      // Enforce execution timeout based on QueueConfig
+      const { QueueConfig } = await import('./../config/queue');
+      const execPromise = generateViaCore(this.env, { aiRequest: task.payload, userId });
+      const timeoutMs = QueueConfig.TASK_EXECUTION_TIMEOUT_MS;
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('task_timeout')), timeoutMs));
+      try {
+        const coreRespRaw = await Promise.race([execPromise, timeoutPromise]);
+        const coreResp: any = coreRespRaw as any;
+        if (coreResp && coreResp.ok) {
+          result = coreResp.data;
+          await this.service.markSuccess(task.id, result);
+        } else {
+          const err = (coreResp && coreResp.error) ? coreResp.error : 'ai_core_error';
+          await this.onTaskFailure(task, err);
+        }
+      } catch (err: any) {
+        // timeout or other error
+        const msg = err?.message || 'worker_error';
+        await this.onTaskFailure(task, msg);
       }
     } catch (e: any) {
       await this.onTaskFailure(task, e?.message || 'worker_error');
