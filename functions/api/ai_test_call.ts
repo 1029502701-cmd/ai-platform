@@ -5,7 +5,18 @@ import { MockProvider } from '../../shared/services/ai_provider_adapters_mock';
 export const onRequestGet = async (context: any) => {
   const { request } = context;
   await seedExample();
+  // register mock provider instance
+  // register mock provider
   registerProvider('mock', MockProvider);
+  // if OPENAI adapter exists, import and register it (dynamic import to avoid bundling/runtime issues)
+  try {
+    const mod = await import('../../shared/services/ai_provider_adapters_openai');
+    if (mod && mod.OpenAIProvider) {
+      registerProvider('openai', new mod.OpenAIProvider(context.env || undefined));
+    }
+  } catch (e) {
+    // ignore import errors in envs without OpenAI adapter
+  }
 
   const url = new URL(request.url);
   const modelId = url.searchParams.get('model') || 'mock-text-1';
