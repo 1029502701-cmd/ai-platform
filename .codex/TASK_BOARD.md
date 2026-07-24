@@ -142,3 +142,12 @@
 - 新增文件：shared/services/ai_queue_worker.ts
 - Worker 执行流程：领取任务 -> 标记 running -> 调用 AI Core -> success 写回 / failure 重试或标记 failed -> 继续轮询
 - 验证结果：本地构建与类型检查通过；基本执行路径静态检查通过（需在运行时环境以 D1 数据与 AI Core 集成做动态验证）
+
+| Task-403 | AI Queue 重试机制 | ✅ Completed | 实现重试字段、repo/service 扩展、Worker 重试/退避逻辑 |
+
+### Task-403 完成记录
+- 完成内容：增加 retry_count/max_retry/next_retry_at 字段（migration），扩展 repository/service，Worker 实现重试计数与指数退避策略（10s、30s、5min）。
+- 新增文件：drizzle/0011_ai_tasks_retry.sql
+- 修改文件：shared/services/ai_queue_repository.ts, shared/services/ai_queue_service.ts, shared/services/ai_queue_worker.ts, shared/types/ai_queue.ts
+- 重试流程：任务失败后判断 retry_count 与 max_retry，若可重试则更新 retry_count 与 next_retry_at 并将 status 恢复为 pending；否则标记为 failed 并记录错误。
+- 验证结果：本地构建与类型检查通过；建议在 staging 环境执行 migration 并运行 Worker 做运行时验证。
