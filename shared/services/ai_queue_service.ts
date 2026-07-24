@@ -14,7 +14,7 @@ export class AIQueueService {
     type: string;
     payload?: any;
     priority?: TaskPriority;
-    created_by?: string;
+    created_by?: string | null;
     max_retry?: number;
   }) {
     const id = uuidv4();
@@ -26,7 +26,7 @@ export class AIQueueService {
       payload: params.payload,
       retry_count: 0,
       max_retry: params.max_retry ?? 3,
-      created_by: params.created_by || null,
+      created_by: params.created_by ?? undefined,
       created_at: new Date().toISOString()
     };
     await this.repo.createTask(task);
