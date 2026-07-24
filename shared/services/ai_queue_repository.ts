@@ -97,6 +97,30 @@ export class AIQueueRepository {
       .run(retryCount, nextRetryAt, 'pending', null, id);
   }
 
+  // Admin query: list tasks with optional filters
+  async listTasksWithFilters(filters: any = {}, limit = 50) {
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (filters.status) { conditions.push('status = ?'); params.push(filters.status); }
+    if (filters.type) { conditions.push('type = ?'); params.push(filters.type); }
+    if (filters.userId) { conditions.push('created_by = ?'); params.push(filters.userId); }
+    let where = '';
+    if (conditions.length) where = 'WHERE ' + conditions.join(' AND ');
+    const sql = `SELECT * FROM ai_tasks ${where} ORDER BY CASE priority WHEN 'high' THEN 3 WHEN 'normal' THEN 2 WHEN 'low' THEN 1 ELSE 2 END DESC, created_at ASC LIMIT ?`;
+    const rows = await this.env.DB.prepare(sql).all(limit, ...params);
+    return rows.map((r: any) => this.mapRowToTask(r));
+  }
+
+  async getStats() {
+    const totals: any = await this.env.DB.prepare("SELECT status, COUNT(*) as cnt FROM ai_tasks GROUP BY status").all();
+    const stats: any = { total: 0, pending: 0, running: 0, success: 0, failed: 0, cancelled: 0 };
+    totals.forEach((row: any) => {
+      stats.total += row.cnt;
+      if (row.status in stats) stats[row.status] = row.cnt;
+    });
+    return stats;
+  }
+
   mapRowToTask(row: any): AITask {
     return {
       id: row.id,
