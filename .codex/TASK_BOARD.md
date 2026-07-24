@@ -131,3 +131,4 @@
 | Task-301 | AI 提供商抽象层（Provider Abstraction） | ✅ Completed | 已完成 OpenAI 适配器、Registry D1/KV 加载、迁移与基础超时/重试 |
 | Task-302 | AI 模型管理系统 | ✅ Completed | 已完成 Model Manager、KV 缓存、Admin CRUD 与 ai_model_limits 迁移 |
 | Task-303 | Prompt Engine（提示词管理引擎） | ✅ Completed | 已实现 prompts/prompt_versions 迁移、Prompt Manager、KV 缓存、Admin CRUD、render API |
+| Task-304 | Knowledge Engine（Knowledge Engine） | ✅ Completed | 已实现 knowledge_bases/documents/chunks 迁移、Knowledge Manager、KV 缓存、Admin CRUD、search/context API |
