@@ -1,0 +1,35 @@
+# Cloudflare Pages configuration.
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-07-24"
+
+[vars]
+NODE_ENV = "production"
+API_VERSION = "v1"
+
+# Replace the local placeholder ID before any remote deployment.
+[[d1_databases]]
+binding = "DB"
+database_name = "ai-platform-db"
+database_id = "00000000-0000-0000-0000-000000000000"
+
+# Replace local placeholder IDs before any remote deployment. Use separate
+# namespaces for cache, rate limits, and feature flags in each environment.
+[[kv_namespaces]]
+binding = "USER_CACHE"
+id = "00000000-0000-0000-0000-000000000001"
+
+[[kv_namespaces]]
+binding = "RATE_LIMITS"
+id = "00000000-0000-0000-0000-000000000002"
+
+[[kv_namespaces]]
+binding = "FEATURE_FLAGS"
+id = "00000000-0000-0000-0000-000000000003"
+
+[[r2_buckets]]
+binding = "ASSETS_BUCKET"
+bucket_name = "ai-platform-assets"
+preview_bucket_name = "ai-platform-assets-preview"
+
+[env.dev]
+vars = { NODE_ENV = "development", LOG_LEVEL = "debug" }

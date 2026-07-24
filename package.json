@@ -1,10 +1,12 @@
-﻿{
+{
   "name": "ai-saas-platform",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 5173"
+    "dev": "vite --port 5173",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "react": "~19.1.0",
@@ -23,4 +25,3 @@
     "wrangler": "^4.45.0"
   }
 }
-
