@@ -129,3 +129,5 @@
 | Task-203 | 建立平台权限管理基础 | ✅ Completed | 已完成 RBAC 基础表迁移、权限校验服务、Admin 角色查询与用户角色分配/撤销 API |
 | Task-204 | 建立用户设置系统 | ✅ Completed | 已完成迁移、shared modules、KV 缓存与 API（用户与 Admin）实现 |
 | Task-301 | AI 提供商抽象层（Provider Abstraction） | ✅ Completed | 已完成 OpenAI 适配器、Registry D1/KV 加载、迁移与基础超时/重试 |
+| Task-302 | AI 模型管理系统 | ✅ Completed | 已完成 Model Manager、KV 缓存、Admin CRUD 与 ai_model_limits 迁移 |
+| Task-303 | Prompt Engine（提示词管理引擎） | ✅ Completed | 已实现 prompts/prompt_versions 迁移、Prompt Manager、KV 缓存、Admin CRUD、render API |
