@@ -11,6 +11,7 @@ export interface AITask {
   retry_count?: number;
   max_retry?: number;
   next_run_at?: string | null;
+  next_retry_at?: string | null;
   locked_by?: string | null;
   locked_at?: string | null;
   created_by?: string | null;

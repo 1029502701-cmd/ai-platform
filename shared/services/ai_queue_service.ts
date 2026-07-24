@@ -42,7 +42,7 @@ export class AIQueueService {
   }
 
   async fetchNextForWorker(workerId: string) {
-    // Claim next pending task
+    // Claim next pending or retryable task
     return this.repo.lockNextPending(workerId);
   }
 
@@ -58,7 +58,11 @@ export class AIQueueService {
     return this.repo.markFailed(id, error, retryCount);
   }
 
-  async reschedule(id: string, nextRunAt: string | null) {
-    return this.repo.markPending(id, nextRunAt);
+  async reschedule(id: string, nextRetryAt: string | null) {
+    return this.repo.markPending(id, nextRetryAt);
+  }
+
+  async markRetry(id: string, retryCount: number, nextRetryAt: string | null) {
+    return this.repo.markRetry(id, retryCount, nextRetryAt);
   }
 }

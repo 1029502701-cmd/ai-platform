@@ -62,16 +62,20 @@ export class AIQueueWorker {
   }
 
   async onTaskFailure(task: AITask, errorMsg: string) {
-    const nextRetry = (task.retry_count || 0) + 1;
-    if (nextRetry > (task.max_retry || 3)) {
+    const currentRetry = task.retry_count ?? 0;
+    const nextRetry = currentRetry + 1;
+    if (nextRetry > (task.max_retry ?? 3)) {
       // mark failed permanently
       await this.service.markFailed(task.id, errorMsg, nextRetry);
     } else {
-      // schedule retry with exponential backoff
-      const backoffMs = Math.min(60_000, Math.pow(2, nextRetry) * 1000); // cap 60s
-      const nextRunAt = new Date(Date.now() + backoffMs).toISOString();
-      await this.service.reschedule(task.id, nextRunAt);
-      // update retry_count
+      // schedule retry with defined backoff strategy: 1st -> 10s, 2nd -> 30s, 3rd -> 5min
+      let backoffMs = 10000; // default 10s
+      if (nextRetry === 2) backoffMs = 30000;
+      else if (nextRetry >= 3) backoffMs = 5 * 60 * 1000;
+      const nextRetryAt = new Date(Date.now() + backoffMs).toISOString();
+      // mark retry: update retry_count and next_retry_at and set status back to pending
+      await this.service.markRetry(task.id, nextRetry, nextRetryAt);
+      // record last error as failed attempt
       await this.service.markFailed(task.id, errorMsg, nextRetry);
     }
   }

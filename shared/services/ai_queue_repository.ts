@@ -73,7 +73,7 @@ export class AIQueueRepository {
   async lockNextPending(workerId: string) {
     // Attempt to atomically claim a pending task for this worker
     // Note: D1 doesn't support RETURNING; emulate with select then update under optimistic approach
-    const row = await this.env.DB.prepare("SELECT id FROM ai_tasks WHERE status = 'pending' AND (next_run_at IS NULL OR next_run_at <= CURRENT_TIMESTAMP) ORDER BY priority = 'high' DESC, priority = 'normal' DESC, created_at ASC LIMIT 1").get();
+    const row = await this.env.DB.prepare("SELECT id FROM ai_tasks WHERE status = 'pending' AND (next_retry_at IS NULL OR next_retry_at <= CURRENT_TIMESTAMP) ORDER BY priority = 'high' DESC, priority = 'normal' DESC, created_at ASC LIMIT 1").get();
     if (!row) return null;
     const id = row.id;
     // Try to lock
@@ -81,6 +81,16 @@ export class AIQueueRepository {
     const locked = await this.env.DB.prepare('SELECT locked_by FROM ai_tasks WHERE id = ?').get(id);
     if (locked && locked.locked_by === workerId) return this.getTaskById(id);
     return null;
+  }
+
+  async getRetryableTasks(limit = 50) {
+    const rows = await this.env.DB.prepare("SELECT * FROM ai_tasks WHERE status = 'pending' AND (next_retry_at IS NULL OR next_retry_at <= CURRENT_TIMESTAMP) ORDER BY next_retry_at ASC LIMIT ?").all(limit);
+    return rows.map((r: any) => this.mapRowToTask(r));
+  }
+
+  async markRetry(id: string, retryCount: number, nextRetryAt: string | null) {
+    await this.env.DB.prepare('UPDATE ai_tasks SET retry_count = ?, next_retry_at = ?, status = ?, last_error = ? WHERE id = ?')
+      .run(retryCount, nextRetryAt, 'pending', null, id);
   }
 
   mapRowToTask(row: any): AITask {
@@ -93,7 +103,7 @@ export class AIQueueRepository {
       result: row.result ? JSON.parse(row.result) : undefined,
       retry_count: row.retry_count,
       max_retry: row.max_retry,
-      next_run_at: row.next_run_at,
+      next_retry_at: row.next_retry_at,
       locked_by: row.locked_by,
       locked_at: row.locked_at,
       created_by: row.created_by,
