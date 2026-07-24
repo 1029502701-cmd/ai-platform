@@ -134,3 +134,4 @@
 | Task-304 | Knowledge Engine（Knowledge Engine） | ✅ Completed | 已实现 knowledge_bases/documents/chunks 迁移、Knowledge Manager、KV 缓存、Admin CRUD、search/context API |
 | Task-305 | AI Service（统一 AI 调用服务层） | ✅ Completed | 已实现 AIService 核心、统一请求/响应、AI endpoints、Prompt/Knowledge 集成 |
 | Task-306 | AI Core（AI Platform Core） | ✅ Completed | 已实现 AI Core 协调器、场景映射、AI endpoints 路由 |
+| Task-401 | AI Queue 基础架构 | ✅ Completed | 已创建 ai_tasks 迁移、Repository、Service 类型定义 |
