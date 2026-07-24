@@ -5,9 +5,9 @@ const registry: Record<string, ModelConfig> = {};
 
 // env-aware loader: pass env to load from D1/KV
 export async function loadRegistryFromBindings(env?: any): Promise<void> {
-  // Attempt to read a KV cached JSON first (AI_MODELS_CACHE)
+  // Attempt to read a KV cached JSON first (USER_CACHE)
   try {
-    const kv = env?.AI_MODELS_CACHE;
+    const kv = env?.USER_CACHE;
     if (kv && kv.get) {
       const raw = await kv.get('models_json');
       if (raw) {

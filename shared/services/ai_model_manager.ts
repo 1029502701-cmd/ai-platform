@@ -1,6 +1,6 @@
 import type { ModelConfig } from './ai_provider_types';
 
-// Model Manager: loads models from D1 (env.DB) with KV caching (env.AI_MODELS_CACHE)
+// Model Manager: loads models from D1 (env.DB) with KV caching (env.USER_CACHE)
 // Exposes getModel, listModels, create/update/setStatus, invalidateCache
 
 const inMemory: Record<string, ModelConfig> = {};
@@ -8,7 +8,7 @@ const inMemory: Record<string, ModelConfig> = {};
 export async function loadModelsFromBindings(env?: any): Promise<void> {
   // try KV cache
   try {
-    const kv = env?.AI_MODELS_CACHE;
+    const kv = env?.USER_CACHE;
     if (kv && kv.get) {
       const raw = await kv.get('models_json');
       if (raw) {
@@ -49,7 +49,7 @@ export async function loadModelsFromBindings(env?: any): Promise<void> {
 
 export async function invalidateModelsCache(env?: any): Promise<void> {
   try {
-    const kv = env?.AI_MODELS_CACHE;
+    const kv = env?.USER_CACHE;
     if (kv && kv.put) {
       await kv.put('models_json', '');
     }

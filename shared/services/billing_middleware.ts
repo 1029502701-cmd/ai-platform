@@ -1,4 +1,4 @@
-﻿import { BillingService } from './billing_service';
+import { BillingService } from './billing_service';
 import { InsufficientCreditsError } from './billing_errors';
 
 export type BillingContext = {
@@ -19,7 +19,7 @@ export class BillingMiddleware {
     
     // Allow zero-cost requests (e.g., local testing with mock models that have no pricing config)
     if (credits <= 0) {
-      return { transactionId: null, credits: 0, service, model };
+      return { transactionId: undefined, credits: 0, service, model };
     }
 
     const balanceCheck = await this.svc.checkBalance(userId);

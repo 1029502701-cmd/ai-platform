@@ -5,7 +5,7 @@
 // - chunk documents (simple split)
 // - search chunks (keyword search with filters)
 // - assemble context (top-K chunks concatenated, respect max length)
-// - use KV cache AI_KB_CACHE for search/context caching
+// - use KV cache USER_CACHE for search/context caching
 
 type KnowledgeBase = {
   id: number;
@@ -22,7 +22,7 @@ const inMemoryBases: Record<string, KnowledgeBase> = {};
 
 export async function loadBasesFromBindings(env?: any) {
   try {
-    const kv = env?.AI_KB_CACHE;
+    const kv = env?.USER_CACHE;
     if (kv && kv.get) {
       const raw = await kv.get('kb_bases_json');
       if (raw) {
@@ -52,7 +52,7 @@ export async function loadBasesFromBindings(env?: any) {
 
 export async function invalidateKbCache(env?: any) {
   try {
-    const kv = env?.AI_KB_CACHE;
+    const kv = env?.USER_CACHE;
     if (kv && kv.put) {
       await kv.put('kb_bases_json', '');
     }
@@ -132,7 +132,7 @@ export async function searchKnowledge(env: any, params: { query: string; baseKey
 export async function assembleContext(env: any, params: { query: string; baseKey?: string; topK?: number; charLimit?: number }) {
   const cacheKey = `ctx:${params.baseKey || 'global'}:${params.query}:${params.topK || 5}:${params.charLimit || 2000}`;
   try {
-    const kv = env?.AI_KB_CACHE;
+    const kv = env?.USER_CACHE;
     if (kv && kv.get) {
       const cached = await kv.get(cacheKey);
       if (cached) return { context: cached, cached: true };
@@ -151,7 +151,7 @@ export async function assembleContext(env: any, params: { query: string; baseKey
   }
   const context = contextParts.join('\n\n');
   try {
-    const kv = env?.AI_KB_CACHE;
+    const kv = env?.USER_CACHE;
     if (kv && kv.put) {
       await kv.put(cacheKey, context, { expirationTtl: 300 });
     }

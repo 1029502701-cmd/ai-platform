@@ -1,6 +1,6 @@
 // Prompt Manager
 // Responsibilities:
-//  - load prompt metadata and versions from D1 (env.DB) with KV cache (env.AI_PROMPT_CACHE)
+//  - load prompt metadata and versions from D1 (env.DB) with KV cache (env.USER_CACHE)
 //  - render prompt templates with variables and simple validation
 //  - provide create/update/publish/rollback operations (admin protected)
 
@@ -31,7 +31,7 @@ const inMemoryVersions: Record<number, PromptVersion> = {};
 export async function loadPromptsFromBindings(env?: any): Promise<void> {
   // Try KV cache first
   try {
-    const kv = env?.AI_PROMPT_CACHE;
+    const kv = env?.USER_CACHE;
     if (kv && kv.get) {
       const raw = await kv.get('prompts_json');
       const rawVersions = await kv.get('prompt_versions_json');
@@ -88,7 +88,7 @@ export async function loadPromptsFromBindings(env?: any): Promise<void> {
 
 export async function invalidatePromptCache(env?: any): Promise<void> {
   try {
-    const kv = env?.AI_PROMPT_CACHE;
+    const kv = env?.USER_CACHE;
     if (kv && kv.put) {
       await kv.put('prompts_json', '');
       await kv.put('prompt_versions_json', '');
