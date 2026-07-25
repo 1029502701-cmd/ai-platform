@@ -2,6 +2,7 @@
 import { BillingMiddleware } from './billing_middleware';
 import { initAIService, registerProvider } from './ai_provider_service';
 import { MockProvider } from './ai_provider_adapters_mock';
+import { checkAndConsumeLimit } from '../auth/usage';
 
 export type CoreRequest = {
   requestId?: string;
@@ -55,6 +56,18 @@ export async function generateViaCore(env: any, coreReq: CoreRequest): Promise<C
 
     coreReq.aiRequest = coreReq.aiRequest || {};
     if (coreReq.userId) coreReq.aiRequest.userId = coreReq.userId;
+
+    // Enforce per-user daily free usage limits (for guest users)
+    if (coreReq.userId) {
+      try {
+        const limitRes = await checkAndConsumeLimit(env.DB, coreReq.userId);
+        if (!limitRes.ok) {
+          return { requestId, ok: false, error: limitRes.error || 'DAILY_LIMIT_EXCEEDED', timings: { duration: Date.now() - start } };
+        }
+      } catch (e: any) {
+        return { requestId, ok: false, error: e.message || 'USAGE_CHECK_FAILED', timings: { duration: Date.now() - start } };
+      }
+    }
 
     const billing = new BillingMiddleware(env.DB);
     let billingContext: any = null;

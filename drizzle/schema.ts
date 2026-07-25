@@ -9,14 +9,22 @@ export const users = sqliteTable(
   "users",
   {
     id: text("id").primaryKey(),
-    email: text("email").notNull(),
+    // legacy email kept for compatibility (not used for login)
+    email: text("email"),
     passwordHash: text("password_hash"),
     role: text("role").notNull().default("user"),
+    // new auth fields
+    openid: text("openid"),
+    unionid: text("unionid"),
+    nickname: text("nickname"),
+    avatar: text("avatar"),
+    type: text("type").notNull().default("guest"),
     status: text("status").notNull().default("active"),
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
   },
   (table) => ({
+    // keep email unique index if email present
     emailUnique: uniqueIndex("users_email_unique").on(table.email),
   }),
 );
@@ -111,4 +119,21 @@ export const beautyAnalysisHistory = sqliteTable("beauty_analysis_history", {
   faceAnalysisJson: text("face_analysis_json"),
   styleResult: text("style_result"),
   createdAt: text("created_at").notNull(),
+});
+
+// new tables
+export const userSessions = sqliteTable("user_sessions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").notNull(),
+  createdAt: text("created_at").notNull(),
+  expiresAt: text("expires_at").notNull(),
+  revokedAt: text("revoked_at"),
+});
+
+export const userUsageLimits = sqliteTable("user_usage_limits", {
+  userId: text("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  dailyFreeCount: integer("daily_free_count").notNull().default(3),
+  usedCount: integer("used_count").notNull().default(0),
+  resetTime: text("reset_time").notNull(),
 });

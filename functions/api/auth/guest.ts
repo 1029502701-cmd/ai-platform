@@ -1,0 +1,37 @@
+import type { PagesFunction } from "@cloudflare/workers-types";
+import { createSession } from "../../../shared/auth/session";
+import type { AuthEnv } from "../../../shared/auth/types";
+
+type RequestContext = Parameters<PagesFunction<AuthEnv>>[0];
+
+function jsonResponse(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json; charset=utf-8" } });
+}
+
+export const onRequestPost = async (context: RequestContext) => {
+  const { env } = context;
+  const now = new Date().toISOString();
+  // create a new guest user
+  const userId = `guest_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`;
+  const nickname = `Guest-${userId.slice(-6)}`;
+  try {
+    await env.DB.prepare(
+      `INSERT INTO users (id, nickname, type, role, status, created_at, updated_at) VALUES (?, ?, 'guest', 'user', 'active', ?, ?)`
+    ).bind(userId, nickname, now, now).run();
+
+    // create profile row as well
+    try {
+      await env.DB.prepare(
+        `INSERT INTO profiles (user_id, display_name, avatar_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`
+      ).bind(userId, nickname, null, now, now).run();
+    } catch (e) {
+      // ignore
+    }
+
+    const { sessionId, session } = await createSession(env, { id: userId, email: "", role: "user", status: "active" });
+
+    return jsonResponse({ success: true, data: { userId, guestToken: sessionId, expiresAt: session.expiresAt } });
+  } catch (e: any) {
+    return jsonResponse({ success: false, error: e.message || String(e) }, 500);
+  }
+};

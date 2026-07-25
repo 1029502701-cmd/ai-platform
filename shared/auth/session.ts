@@ -68,15 +68,26 @@ export async function createSession(
     )
       .bind(digest, user.id, record.sessionVersion, now, expiresAt, now)
       .run();
-  } catch (error) {
-    await env.USER_CACHE.delete(sessionKey(digest));
-    throw error;
-  }
 
-  return {
-    sessionId,
-    session: { id: digest, user, createdAt: now, expiresAt },
-  };
+      // Also maintain user_sessions table for compatibility with new auth flows
+      try {
+        await env.DB.prepare(
+          `INSERT INTO user_sessions (id, user_id, token, created_at, expires_at) VALUES (?, ?, ?, ?, ?)`,
+        )
+          .bind(digest, user.id, sessionId, now, expiresAt)
+          .run();
+      } catch (e) {
+        // non-fatal: ignore if user_sessions not present in older DBs
+      }
+    } catch (error) {
+      await env.USER_CACHE.delete(sessionKey(digest));
+      throw error;
+    }
+
+    return {
+      sessionId,
+      session: { id: digest, user, createdAt: now, expiresAt },
+    };
 }
 
 export async function getSession(
@@ -129,4 +140,14 @@ export async function revokeSession(env: AuthEnv, sessionId: string): Promise<vo
   )
     .bind(new Date().toISOString(), new Date().toISOString(), digest)
     .run();
+
+  try {
+    await env.DB.prepare(
+      `UPDATE user_sessions SET revoked_at = COALESCE(revoked_at, ?) WHERE id = ?`,
+    )
+      .bind(new Date().toISOString(), digest)
+      .run();
+  } catch (e) {
+    // ignore if table not present
+  }
 }
