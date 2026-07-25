@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+﻿import { Link } from "react-router";
 
 /** Site header */
 export default function Header() {
@@ -9,9 +9,10 @@ export default function Header() {
           AI Platform
         </Link>
         <nav className="flex gap-6 text-sm">
-        <Link to="/" className="text-gray-600 hover:text-gray-900">首页</Link>
-        <Link to="/pricing" className="text-gray-600 hover:text-gray-900">定价</Link>
-        <Link to="/login" className="text-gray-600 hover:text-gray-900">登录</Link>
+          <Link to="/" className="text-gray-600 hover:text-gray-900">首页</Link>
+          <Link to="/pricing" className="text-gray-600 hover:text-gray-900">定价</Link>
+          <Link to="/beauty" className="text-purple-600 hover:text-purple-800 font-medium">🔍 美妆分析</Link>
+          <Link to="/login" className="text-gray-600 hover:text-gray-900">登录</Link>
         </nav>
       </div>
     </header>
