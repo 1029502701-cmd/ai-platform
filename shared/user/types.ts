@@ -5,6 +5,7 @@ export interface UserProfile {
   status: "active" | "suspended" | "deleted";
   displayName: string | null;
   avatarUrl: string | null;
+  imageUrl?: string | null;
   locale: string;
   timezone: string;
   createdAt: string;
@@ -14,6 +15,7 @@ export interface UserProfile {
 export interface ProfileUpdateInput {
   displayName?: string | null;
   avatarUrl?: string | null;
+  imageUrl?: string | null;
   locale?: string;
   timezone?: string;
 }

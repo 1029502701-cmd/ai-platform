@@ -17,6 +17,14 @@ export const onRequestPost = async (context: any) => {
       );
     }
 
+    // validate optional imageUrl
+    if (body.imageUrl !== undefined && typeof body.imageUrl !== 'string') {
+      return new Response(
+        JSON.stringify({ success: false, data: null, error: { code: 'INVALID_IMAGE_URL', message: 'imageUrl must be a string' } }),
+        { status: 400, headers: { 'Content-Type': 'application/json; charset=utf-8' } },
+      );
+    }
+
     const { reportId, report } = await analyzeBeauty(body);
 
     return new Response(

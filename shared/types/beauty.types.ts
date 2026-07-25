@@ -6,6 +6,8 @@ export interface UserContext {
 
 export interface BeautyAnalysisRequest {
   userContext: UserContext;
+  // Optional: URL to an uploaded/accessible image to analyze
+  imageUrl?: string;
 }
 
 // ── facial geometry ────────────────────────────────────────────────

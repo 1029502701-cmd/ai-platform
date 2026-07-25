@@ -34,6 +34,37 @@ export default function BeautyHomePage() {
     fileInputRef.current?.click();
   };
 
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+
+  const uploadFile = (file: File): Promise<{ imageUrl: string; fileId: string }> => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/apps/beauty/upload');
+
+      xhr.onload = () => {
+        try {
+          const res = JSON.parse(xhr.responseText);
+          if (!res || !res.success) return reject(new Error(res?.error?.message || 'Upload failed'));
+          resolve(res.data || res);
+        } catch (e) {
+          reject(e);
+        }
+      };
+      xhr.onerror = () => reject(new Error('Upload failed'));
+      if (xhr.upload) {
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            setUploadProgress(Math.round((e.loaded / e.total) * 100));
+          }
+        };
+      }
+
+      const form = new FormData();
+      form.append('file', file, file.name);
+      xhr.send(form);
+    });
+  };
+
   const handleAnalyze = async () => {
     if (!selectedFile) {
       setError("请先上传照片");
@@ -44,10 +75,14 @@ export default function BeautyHomePage() {
     setError(null);
 
     try {
+      // Upload first
+      const uploadResult = await uploadFile(selectedFile);
+      const imageUrl = uploadResult.imageUrl as string;
+      // Use server-side analyse with provided imageUrl
       const response = await fetch("/api/apps/beauty/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userContext: { mock: true } }),
+        body: JSON.stringify({ userContext: { mock: false }, imageUrl }),
       });
 
       const result = await response.json();
@@ -57,11 +92,12 @@ export default function BeautyHomePage() {
       }
 
       // Navigate to report view with the full report data
-      navigate("/beauty/report", { state: { report: result.data.report as BeautyReport, reportId: result.data.reportId, previewUrl } });
+      navigate("/beauty/report", { state: { report: result.data.report as BeautyReport, reportId: result.data.reportId, previewUrl: imageUrl } });
     } catch (err: any) {
       setError(err.message || "分析失败，请稍后重试");
     } finally {
       setAnalyzing(false);
+      setUploadProgress(null);
     }
   };
 
@@ -151,13 +187,20 @@ export default function BeautyHomePage() {
             className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 px-6 py-3.5 text-base font-medium text-white shadow transition disabled:cursor-not-allowed disabled:opacity-50 hover:from-purple-600 hover:to-indigo-600"
           >
             {analyzing ? (
-              <>
-                <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                正在分析中...
-              </>
+              uploadProgress !== null ? (
+                <>
+                  <div className="h-5 w-5 flex items-center justify-center text-sm">{uploadProgress}%</div>
+                  上传中 {uploadProgress}%
+                </>
+              ) : (
+                <>
+                  <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  正在分析中...
+                </>
+              )
             ) : (
               <>
                 🔍 开始分析

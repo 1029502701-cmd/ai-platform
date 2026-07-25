@@ -27,6 +27,7 @@ export const profiles = sqliteTable("profiles", {
     .references(() => users.id, { onDelete: "cascade" }),
   displayName: text("display_name"),
   avatarUrl: text("avatar_url"),
+  imageUrl: text("image_url"),
   locale: text("locale").notNull().default("zh-CN"),
   timezone: text("timezone").notNull().default("Asia/Shanghai"),
   createdAt: text("created_at").notNull(),

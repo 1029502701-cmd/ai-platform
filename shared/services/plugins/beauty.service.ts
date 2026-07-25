@@ -144,11 +144,31 @@ function makeProducts(): ProductRecommendation[] {
 // ── main analysis function ─────────────────────────────────────────
 
 export async function analyzeBeauty(
-  _request: BeautyAnalysisRequest,
+  request: BeautyAnalysisRequest,
 ): Promise<{ reportId: string; report: BeautyReport }> {
+  // If an imageUrl is provided, attempt to fetch it (R2/internal route or external URL).
+  // We don't perform real vision analysis here; fetching validates accessibility and content-type.
+  if (request.imageUrl) {
+    try {
+      const res = await fetch(request.imageUrl);
+      if (!res.ok) {
+        console.warn('Failed to fetch image for analysis:', res.status);
+      } else {
+        const ct = res.headers.get('content-type') || '';
+        if (!ct.startsWith('image/')) {
+          console.warn('Fetched resource is not an image:', ct);
+        } else {
+          // We could read the body if needed: const buf = await res.arrayBuffer();
+          // For mock, we simply acknowledge we could fetch the image.
+        }
+      }
+    } catch (e: any) {
+      console.warn('Error fetching image for analysis:', e?.message || e);
+    }
+  }
+
   // In production this would call an AI vision model
   // For mock mode we generate a structured report
-
   const analysisId = 'ana_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
   const reportId = 'rpt_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
 

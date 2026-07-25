@@ -3,6 +3,7 @@ import type { ProfileUpdateInput, UserProfile } from "./types";
 
 const MAX_DISPLAY_NAME_LENGTH = 80;
 const MAX_AVATAR_URL_LENGTH = 2048;
+const MAX_IMAGE_URL_LENGTH = 4096;
 const LOCALE_PATTERN = /^[a-z]{2,3}(?:-[A-Z][a-z]{1,3})?$/;
 const TIMEZONE_PATTERN = /^[A-Za-z0-9_+-]+(?:\/[A-Za-z0-9_+.-]+)+$/;
 
@@ -26,7 +27,7 @@ export function validateProfileUpdate(input: unknown): ProfileUpdateInput {
   }
 
   const record = input as Record<string, unknown>;
-  const allowedFields = new Set(["displayName", "avatarUrl", "locale", "timezone"]);
+  const allowedFields = new Set(["displayName", "avatarUrl", "imageUrl", "locale", "timezone"]);
   for (const key of Object.keys(record)) {
     if (!allowedFields.has(key)) {
       throw new Error(`Unknown profile field: ${key}`);
@@ -39,6 +40,7 @@ export function validateProfileUpdate(input: unknown): ProfileUpdateInput {
     MAX_DISPLAY_NAME_LENGTH,
   );
   const avatarUrl = validateOptionalText(record.avatarUrl, "avatarUrl", MAX_AVATAR_URL_LENGTH);
+  const imageUrl = validateOptionalText(record.imageUrl, "imageUrl", MAX_IMAGE_URL_LENGTH);
   const locale = record.locale;
   const timezone = record.timezone;
 
@@ -57,7 +59,7 @@ export function validateProfileUpdate(input: unknown): ProfileUpdateInput {
     throw new Error("timezone is invalid");
   }
 
-  return { displayName, avatarUrl, locale, timezone };
+  return { displayName, avatarUrl, imageUrl, locale, timezone };
 }
 
 export async function getUserProfile(
@@ -73,6 +75,7 @@ export async function getUserProfile(
         u.status,
         p.display_name AS displayName,
         p.avatar_url AS avatarUrl,
+        p.image_url AS imageUrl,
         COALESCE(p.locale, 'zh-CN') AS locale,
         COALESCE(p.timezone, 'Asia/Shanghai') AS timezone,
         COALESCE(p.created_at, u.created_at) AS createdAt,
@@ -99,17 +102,19 @@ export async function updateUserProfile(
   const now = new Date().toISOString();
   const displayName = input.displayName === undefined ? existing.displayName : input.displayName;
   const avatarUrl = input.avatarUrl === undefined ? existing.avatarUrl : input.avatarUrl;
+  const imageUrl = input.imageUrl === undefined ? existing.imageUrl : input.imageUrl;
   const locale = input.locale === undefined ? existing.locale : input.locale;
   const timezone = input.timezone === undefined ? existing.timezone : input.timezone;
 
   await db
     .prepare(
       `INSERT INTO profiles
-        (user_id, display_name, avatar_url, locale, timezone, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)
+        (user_id, display_name, avatar_url, image_url, locale, timezone, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(user_id) DO UPDATE SET
          display_name = excluded.display_name,
          avatar_url = excluded.avatar_url,
+         image_url = excluded.image_url,
          locale = excluded.locale,
          timezone = excluded.timezone,
          updated_at = excluded.updated_at`,
@@ -118,6 +123,7 @@ export async function updateUserProfile(
       userId,
       displayName,
       avatarUrl,
+      imageUrl,
       locale,
       timezone,
       existing.createdAt,
