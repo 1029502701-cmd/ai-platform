@@ -78,3 +78,12 @@ export const aiJobs = sqliteTable("ai_jobs", {
   startedAt: text("started_at"),
   completedAt: text("completed_at"),
 });
+
+export const beautyReports = sqliteTable("beauty_reports", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+  reportJson: text("report_json"),
+  shareImageUrl: text("share_image_url"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});

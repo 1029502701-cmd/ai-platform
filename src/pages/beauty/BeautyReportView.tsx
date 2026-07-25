@@ -1,7 +1,7 @@
 ﻿import { useLocation, useNavigate } from "react-router";
 import type { BeautyReport } from "../../../shared/types/beauty.types";
 
-/** Beauty Report View — display analysis results */
+/** Beauty Report View — plugin-aware wrapper */
 export default function BeautyReportViewPage() {
   const location = useLocation();
   const navigate = useNavigate();

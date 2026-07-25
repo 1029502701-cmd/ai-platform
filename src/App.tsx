@@ -7,7 +7,8 @@ import LoginPage from "./pages/Login";
 import PricingPage from "./pages/Pricing";
 import RegisterPage from "./pages/Register";
 import BeautyHomePage from "./pages/beauty/BeautyHome";
-import BeautyReportViewPage from "./pages/beauty/BeautyReportView";
+import PluginBeautyReportView from "../plugins/beauty/frontend/BeautyReportView";
+import BeautySharePage from "./pages/beauty/BeautyShare";
 
 export default function App() {
   return (
@@ -20,7 +21,8 @@ export default function App() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/beauty" element={<BeautyHomePage />} />
-        <Route path="/beauty/report" element={<BeautyReportViewPage />} />
+        <Route path="/beauty/report" element={<PluginBeautyReportView />} />
+        <Route path="/beauty/share/:id" element={<BeautySharePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>
