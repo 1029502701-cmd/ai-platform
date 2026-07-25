@@ -1,0 +1,21 @@
+﻿{
+  "version": 1,
+  "description": "AI Platform SPA + API routes for Cloudflare Pages",
+  "rules": [
+    {
+      "pattern": "^/api/apps/beauty/analyze$",
+      "status": 200,
+      "function": "api"
+    },
+    {
+      "pattern": "^/beauty(/.*)?$",
+      "status": 200,
+      "function": "spa"
+    },
+    {
+      "pattern": "^(?!/assets/|favicon\\.svg).*",
+      "status": 200,
+      "function": "spa"
+    }
+  ]
+}
