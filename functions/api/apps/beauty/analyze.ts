@@ -1,6 +1,8 @@
 ﻿import { analyzeBeauty } from '../../../../shared/services/plugins/beauty.service';
 import { readSessionId } from "../../../../shared/auth/cookies";
 import { getSession } from "../../../../shared/auth/session";
+import { enqueue } from '../../../../shared/services/queue';
+import { BillingService } from '../../../../shared/services/billing.service';
 import { updateUserProfile } from '../../../../shared/user/profile';
 
 export const onRequestPost = async (context: any) => {
@@ -25,6 +27,11 @@ export const onRequestPost = async (context: any) => {
       if (sessionId) {
         session = await getSession(context.env, sessionId);
         if (session && context.env?.DB) {
+          // record a lightweight usage entry for the analysis
+          try {
+            const billingSvc = new BillingService(context.env.DB);
+            try { await billingSvc.createUsage(session.user.id, { user_id: session.user.id, service: 'beauty.analysis', model: 'face_analysis', input_tokens: 0, output_tokens: 0, credits_used: 0, cost_usd: 0, status: 'completed' }); } catch (e) { /* swallow */ }
+          } catch (e) { /* ignore billing errors */ }
           try {
             userProfile = await context.env.DB.prepare('SELECT * FROM beauty_profiles WHERE user_id = ? LIMIT 1').bind(session.user.id).first();
           } catch (e) {
@@ -37,7 +44,20 @@ export const onRequestPost = async (context: any) => {
       userProfile = null;
     }
 
-    const { reportId, report } = await analyzeBeauty({ userContext: { mock: false, userProfile }, imageUrl });
+    let reportId: any = null;
+    let report: any = null;
+    if (body.async === true || body.async === 'true') {
+      // enqueue for async processing
+      const sessionIdForQueue = readSessionId(context.request.headers.get('Cookie'));
+      const sessionForQueue = sessionIdForQueue ? await getSession(context.env, sessionIdForQueue) : null;
+      const userIdForQueue = sessionForQueue?.user?.id ?? null;
+      const taskId = await enqueue(context.env, 'beauty.analyze', { imageUrl }, { created_by: userIdForQueue });
+      return new Response(JSON.stringify({ success: true, data: { taskId } }), { status: 202, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
+    } else {
+      const res = await analyzeBeauty({ userContext: { mock: false, userProfile }, imageUrl });
+      reportId = res.reportId;
+      report = res.report;
+    }
 
     // Update user's last_analysis_image and persist profile/history if authenticated
     try {

@@ -1,0 +1,8 @@
+{
+  "id": "beauty",
+  "name": "Beauty",
+  "version": "0.1.0",
+  "description": "AI-driven beauty analysis plugin",
+  "routes": ["/api/apps/beauty/*", "/admin/apps/beauty/*"],
+  "permissions": ["storage:put", "storage:get", "billing:usage", "queue:submit"]
+}

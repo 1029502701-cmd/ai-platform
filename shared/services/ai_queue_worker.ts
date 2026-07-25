@@ -1,6 +1,8 @@
 import { AIQueueService } from './ai_queue_service';
 import { generateViaCore } from './ai_core';
 import type { AITask } from '../types/ai_queue';
+import { analyzeBeauty } from './plugins/beauty.service';
+import { BillingService } from './billing.service';
 
 export class AIQueueWorker {
   service: AIQueueService;
@@ -48,7 +50,56 @@ export class AIQueueWorker {
   async handleTask(task: AITask) {
     // Mark running
     await this.service.markRunning(task.id, this.workerId);
-    // Execute via AI Core
+    // Plugin-specific tasks
+    try {
+      if (task.type === 'beauty.analyze') {
+        const payload = task.payload || {};
+        const userId = typeof task.created_by === 'string' ? task.created_by : payload.userId;
+        try {
+          const { reportId, report } = await analyzeBeauty({ userContext: { mock: false, userProfile: payload.userProfile }, imageUrl: payload.imageUrl });
+          // persist results if DB available
+          if (userId && this.env?.DB) {
+            try {
+              const db = this.env.DB;
+              const now = new Date().toISOString();
+              await db.prepare('INSERT OR REPLACE INTO beauty_reports (id, user_id, report_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?)').bind(reportId, userId, JSON.stringify(report), now, now).run();
+              const existing = await db.prepare('SELECT id, analysis_count FROM beauty_profiles WHERE user_id = ? LIMIT 1').bind(userId).first();
+              if (existing) {
+                await db.prepare('UPDATE beauty_profiles SET current_face_shape = ?, current_eye_shape = ?, analysis_count = COALESCE(analysis_count,0) + 1, last_analysis_id = ?, updated_at = ? WHERE user_id = ?')
+                  .bind((report as any).faceShape?.shape || null, (report as any).faceAnalysis?.eyeShape || null, reportId, now, userId).run();
+              } else {
+                const profileId = 'bp_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 10);
+                await db.prepare('INSERT INTO beauty_profiles (id, user_id, avatar_url, current_face_shape, current_eye_shape, skin_info, preferred_style, favorite_colors, analysis_count, last_analysis_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+                  .bind(profileId, userId, null, (report as any).faceShape?.shape || null, (report as any).faceAnalysis?.eyeShape || null, null, (report as any).makeup?.base || null, null, 1, reportId, now, now).run();
+              }
+              const histId = 'bah_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 10);
+              await db.prepare('INSERT INTO beauty_analysis_history (id, user_id, report_id, image_url, face_analysis_json, style_result, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+                .bind(histId, userId, reportId, payload.imageUrl, (report as any).faceAnalysis ? JSON.stringify((report as any).faceAnalysis) : null, (report as any).makeup?.base || null, now).run();
+            } catch (e: any) {
+              console.warn('[AIQueueWorker][beauty] persistence failed', e?.message || e);
+            }
+          }
+
+          // record a billing/usage entry (best-effort)
+          try {
+            if (userId && this.env?.DB) {
+              const billingSvc = new BillingService(this.env.DB);
+              try { await billingSvc.createUsage(userId, { user_id: userId, service: 'beauty.analysis', model: 'face_analysis', input_tokens: 0, output_tokens: 0, credits_used: 0, cost_usd: 0, status: 'completed' }); } catch (e) {}
+            }
+          } catch (e) {}
+
+          await this.service.markSuccess(task.id, { reportId, report });
+        } catch (e: any) {
+          await this.onTaskFailure(task, e?.message || 'beauty_analysis_failed');
+        }
+        return;
+      }
+    } catch (e: any) {
+      await this.onTaskFailure(task, e?.message || 'worker_error');
+      return;
+    }
+
+    // Fallback: Execute via AI Core
     let result: any = null;
     try {
       // task.payload expected to be AIRequest-like
