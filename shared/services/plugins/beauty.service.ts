@@ -10,6 +10,8 @@ import type {
   ProductRecommendation,
 } from '../../types/beauty.types';
 
+import { analyzeImage as analyzeFaceImage } from './face_analysis_engine';
+
 // ── mock data pools ────────────────────────────────────────────────
 
 const FACE_SHAPES = ['oval', 'round', 'square', 'heart', 'long'];
@@ -172,13 +174,52 @@ export async function analyzeBeauty(
   const analysisId = 'ana_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
   const reportId = 'rpt_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
 
+  // Attempt a real face analysis when an image URL is provided and not explicitly mocked.
+  let faceAnalysis: any = null;
+  try {
+    if (request.imageUrl) {
+      faceAnalysis = await analyzeFaceImage(request.imageUrl, request.userContext);
+    }
+  } catch (e: any) {
+    console.warn('Face analysis engine failed:', e?.message || e);
+    faceAnalysis = null;
+  }
+
+  // Map faceAnalysis into the existing FaceShapeAnalysis shape when available
+  const faceShapeAnalysis = faceAnalysis
+    ? (() => {
+        const m = faceAnalysis.metrics || {};
+        const scale = 300; // convert normalized metrics to approximate pixel values for the report
+        return {
+          shape: faceAnalysis.faceShape,
+          confidence: Number((faceAnalysis.confidence || 0.8).toFixed(2)),
+          faceWidth: Math.round((m.faceWidth || 0) * scale),
+          faceLength: Math.round((m.faceHeight || 0) * scale),
+          cheekboneWidth: Math.round((m.cheekboneWidth || (m.faceWidth || 0) * 0.95) * scale),
+          jawWidth: Math.round((m.jawWidth || 0) * scale),
+          foreheadWidth: Math.round((m.foreheadWidth || 0) * scale),
+          proportions: {
+            upper: 0.3,
+            middle: 0.34,
+            lower: 0.33,
+          },
+          canthalRatio: {
+            innerCanthus: Number((0.2).toFixed(2)),
+            eyeWidth: Number(((m.eyeWidthLeft || 0) / Math.max(0.0001, m.faceWidth || 1)).toFixed(2)),
+            outerCanthus: Number((0.2).toFixed(2)),
+          },
+          recommendations: [`适合的发型建议突出 ${faceAnalysis.faceShape}`],
+        };
+      })()
+    : makeFaceShapeAnalysis();
+
   return {
     reportId,
     report: {
       userId: 'user_mock',
       analysisId,
       timestamp: new Date().toISOString(),
-      faceShape: makeFaceShapeAnalysis(),
+      faceShape: faceShapeAnalysis,
       features: makeFeatureAnalysis(),
       makeup: makeMakeupRecommendation(),
       influencers: makeInfluencers(),

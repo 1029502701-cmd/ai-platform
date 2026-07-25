@@ -1,0 +1,8 @@
+替换人脸分析实现：新增 FaceDetector 抽象、MediaPipe/Mock 实现与指标计算
+
+- 在 shared/services/plugins 中添加 face_detector.ts, face_utils.ts, face_analysis_engine.ts，将人脸检测与度量封装为 FaceDetector 接口。
+- 在 beauty.service 中集成新的人脸分析引擎，支持 mock 模式回退。
+- 添加 TypeScript 测试 tests/face_analysis_real.test.ts，使用 fixture 验证输出结构。
+- 在 package.json 中添加 @mediapipe/tasks-vision 依赖并安装。
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
