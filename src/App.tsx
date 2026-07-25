@@ -9,6 +9,7 @@ import RegisterPage from "./pages/Register";
 import BeautyHomePage from "./pages/beauty/BeautyHome";
 import PluginBeautyReportView from "../plugins/beauty/frontend/BeautyReportView";
 import BeautySharePage from "./pages/beauty/BeautyShare";
+import BeautyProfilePage from "./pages/beauty/BeautyProfile";
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/beauty" element={<BeautyHomePage />} />
+        <Route path="/beauty/profile" element={<BeautyProfilePage />} />
         <Route path="/beauty/report" element={<PluginBeautyReportView />} />
         <Route path="/beauty/share/:id" element={<BeautySharePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

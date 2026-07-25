@@ -121,6 +121,9 @@ export default function BeautyHomePage() {
             上传您的照片，获取专业脸型分析、五官评分、妆容建议和个性化推荐
           </p>
         </div>
+        <div className="text-center mb-6">
+          <button onClick={() => navigate('/beauty/profile')} className="rounded-md bg-white border px-3 py-2 text-sm text-purple-600">我的画像</button>
+        </div>
 
         {/* Upload Card */}
         <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">

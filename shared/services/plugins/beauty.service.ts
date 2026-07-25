@@ -213,17 +213,40 @@ export async function analyzeBeauty(
       })()
     : makeFaceShapeAnalysis();
 
+  // assemble report
+  const makeup = makeMakeupRecommendation();
+  const influencers = makeInfluencers();
+  const products = makeProducts();
+
+  const reportObj: any = {
+    userId: 'user_mock',
+    analysisId,
+    timestamp: new Date().toISOString(),
+    faceShape: faceShapeAnalysis,
+    features: makeFeatureAnalysis(),
+    makeup,
+    influencers,
+    products,
+  };
+
+  // attach raw face analysis data when available (for history)
+  if (faceAnalysis) reportObj.faceAnalysis = faceAnalysis;
+
+  // allow optional user profile biasing via external agent
+  try {
+    // dynamic import to avoid cycles in some environments
+    const { applyUserProfileBias } = await import('./beauty_ai_agent');
+    if (request.userContext && (request as any).userContext?.userProfile) {
+      const styleResult = applyUserProfileBias(reportObj, (request as any).userContext.userProfile);
+      // record style_result inside makeup.reason for debug (non-destructive)
+      if (styleResult) reportObj.makeup = reportObj.makeup || {}, (reportObj.makeup.reason = reportObj.makeup.reason ? `${reportObj.makeup.reason}; bias:${styleResult}` : `bias:${styleResult}`);
+    }
+  } catch (e) {
+    // ignore if agent unavailable
+  }
+
   return {
     reportId,
-    report: {
-      userId: 'user_mock',
-      analysisId,
-      timestamp: new Date().toISOString(),
-      faceShape: faceShapeAnalysis,
-      features: makeFeatureAnalysis(),
-      makeup: makeMakeupRecommendation(),
-      influencers: makeInfluencers(),
-      products: makeProducts(),
-    },
+    report: reportObj,
   };
 }

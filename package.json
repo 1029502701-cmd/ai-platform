@@ -7,7 +7,7 @@
     "dev": "vite --port 5173",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
-    "test": "node tests/ai_core/run_tests.js && node tests/beauty_report_ui.test.js && node tests/beauty_upload.test.js"
+    "test": "node tests/ai_core/run_tests.js && node tests/beauty_report_ui.test.js && node tests/beauty_upload.test.js && node tests/beauty_profile.test.js"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.0",

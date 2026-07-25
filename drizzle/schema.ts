@@ -87,3 +87,28 @@ export const beautyReports = sqliteTable("beauty_reports", {
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });
+
+export const beautyProfiles = sqliteTable("beauty_profiles", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+  avatarUrl: text("avatar_url"),
+  currentFaceShape: text("current_face_shape"),
+  currentEyeShape: text("current_eye_shape"),
+  skinInfo: text("skin_info"),
+  preferredStyle: text("preferred_style"),
+  favoriteColors: text("favorite_colors"),
+  analysisCount: integer("analysis_count").notNull().default(0),
+  lastAnalysisId: text("last_analysis_id").references(() => beautyReports.id, { onDelete: "set null" }),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
+export const beautyAnalysisHistory = sqliteTable("beauty_analysis_history", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+  reportId: text("report_id").references(() => beautyReports.id, { onDelete: "set null" }),
+  imageUrl: text("image_url"),
+  faceAnalysisJson: text("face_analysis_json"),
+  styleResult: text("style_result"),
+  createdAt: text("created_at").notNull(),
+});

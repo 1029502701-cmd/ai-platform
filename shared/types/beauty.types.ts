@@ -2,6 +2,7 @@
 
 export interface UserContext {
   mock?: boolean;
+  userProfile?: any;
 }
 
 export interface BeautyAnalysisRequest {
@@ -96,6 +97,8 @@ export interface BeautyReport {
   makeup: MakeupRecommendation;
   influencers: InfluencerMatch[];
   products: ProductRecommendation[];
+  // optional raw face analysis payload (kept for history/audit purposes)
+  faceAnalysis?: any;
 }
 
 export interface BeautyAnalyzeResponse {
