@@ -12,4 +12,5 @@ export const ROUTES: RouteDef[] = [
   { path: "/chat", label: "AI 聊天", requiresAuth: true },
   { path: "/pricing", label: "定价", requiresAuth: false },
   { path: "/admin/*", label: "管理后台", requiresAuth: true, },
+  { path: "/beauty", label: "美妆分析", requiresAuth: false },
 ];
