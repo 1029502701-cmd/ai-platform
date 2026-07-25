@@ -1,4 +1,4 @@
-﻿# Cloudflare Pages configuration.
+﻿name = "ai-platform"
 pages_build_output_dir = "./dist"
 compatibility_date = "2026-07-24"
 
@@ -6,13 +6,11 @@ compatibility_date = "2026-07-24"
 NODE_ENV = "production"
 API_VERSION = "v1"
 
-# Production D1 database
 [[d1_databases]]
 binding = "DB"
 database_name = "ai-platform-db"
 database_id = "23b19cc8-2a4d-4c4a-a9a7-a30ec61820c9"
 
-# Production KV namespaces
 [[kv_namespaces]]
 binding = "USER_CACHE"
 id = "3370d3a1db49404aa2615c706a5e15eb"
@@ -25,10 +23,6 @@ id = "2c2c7dc47eb44448ba93c06f45d3f984"
 binding = "FEATURE_FLAGS"
 id = "5c4baaf523b74520afb3c04c19d751a6"
 
-# Production R2 bucket
 [[r2_buckets]]
 binding = "ASSETS_BUCKET"
 bucket_name = "ai-platform-assets"
-
-[env.dev]
-vars = { NODE_ENV = "development", LOG_LEVEL = "debug" }

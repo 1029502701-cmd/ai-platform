@@ -18,33 +18,25 @@ export type CoreResponse = {
   timings?: any;
 };
 
-let _registryInitialized = false;
-
-function makeRequestId() {
-  return 'req_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 8);
-}
-
 async function ensureRegistry(env: any) {
-  if (_registryInitialized) return;
   try {
     await initAIService(env);
-    // Register mock provider for local/dev testing
     registerProvider('mock', MockProvider);
-    // Dynamically import and register OpenAI adapter (only when adapter exists)
     try {
       const mod = await import('./ai_provider_adapters_openai');
       if (mod && mod.OpenAIProvider) {
-        registerProvider('openai', new mod.OpenAIProvider(env || undefined));
-        console.log('[AI Core] openai provider registered');
+        registerProvider('openai', new mod.OpenAIProvider(env));
       }
-    } catch (e) {
-      // OpenAI adapter not available (e.g., bundler excluded it) — ignore
-    }
-    console.log('[AI Core] registry and providers initialized');
+    } catch (e) {}
+    try {
+      const mod = await import('./ai_provider_adapters_deepseek');
+      if (mod && mod.DeepSeekProvider) {
+        registerProvider('deepseek', new mod.DeepSeekProvider(env));
+      }
+    } catch (e) {}
   } catch (err: any) {
     console.error('[AI Core] init failed:', err.message);
   }
-  _registryInitialized = true;
 }
 
 export async function generateViaCore(env: any, coreReq: CoreRequest): Promise<CoreResponse> {
@@ -110,4 +102,8 @@ export async function generateViaCore(env: any, coreReq: CoreRequest): Promise<C
     console.error('[AI Core] unexpected error:', e.message);
     return { requestId, ok: false, error: e.message || 'AI_CORE_ERROR', timings: { duration: Date.now() - start } };
   }
+}
+
+function makeRequestId() {
+  return 'req_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 8);
 }
