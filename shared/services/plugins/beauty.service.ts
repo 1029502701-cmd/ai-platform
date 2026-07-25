@@ -1,4 +1,5 @@
 ﻿/** Beauty Plugin service — mock analysis logic */
+
 import type {
   BeautyAnalysisRequest,
   BeautyReport,
@@ -10,7 +11,6 @@ import type {
   ProductRecommendation,
 } from '../../types/beauty.types';
 
-import { analyzeImage as analyzeFaceImage } from './face_analysis_engine';
 
 // ── mock data pools ────────────────────────────────────────────────
 
@@ -148,105 +148,50 @@ function makeProducts(): ProductRecommendation[] {
 export async function analyzeBeauty(
   request: BeautyAnalysisRequest,
 ): Promise<{ reportId: string; report: BeautyReport }> {
-  // If an imageUrl is provided, attempt to fetch it (R2/internal route or external URL).
-  // We don't perform real vision analysis here; fetching validates accessibility and content-type.
+  const reportId = 'rpt_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+
+  // Validate image URL if provided (R2/internal route or external)
   if (request.imageUrl) {
     try {
       const res = await fetch(request.imageUrl);
-      if (!res.ok) {
-        console.warn('Failed to fetch image for analysis:', res.status);
-      } else {
-        const ct = res.headers.get('content-type') || '';
-        if (!ct.startsWith('image/')) {
-          console.warn('Fetched resource is not an image:', ct);
-        } else {
-          // We could read the body if needed: const buf = await res.arrayBuffer();
-          // For mock, we simply acknowledge we could fetch the image.
-        }
-      }
-    } catch (e: any) {
-      console.warn('Error fetching image for analysis:', e?.message || e);
+      if (!res.ok) console.warn('[Beauty] Image unavailable:', res.status);
+    } catch (e) {
+      console.warn('[Beauty] Image error:', (e as any)?.message || e);
     }
   }
 
-  // In production this would call an AI vision model
-  // For mock mode we generate a structured report
-  const analysisId = 'ana_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
-  const reportId = 'rpt_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+  return { reportId, report: buildReport(request.userContext) as BeautyReport };
+}
 
-  // Attempt a real face analysis when an image URL is provided and not explicitly mocked.
-  let faceAnalysis: any = null;
-  try {
-    if (request.imageUrl) {
-      faceAnalysis = await analyzeFaceImage(request.imageUrl, request.userContext);
-    }
-  } catch (e: any) {
-    console.warn('Face analysis engine failed:', e?.message || e);
-    faceAnalysis = null;
-  }
-
-  // Map faceAnalysis into the existing FaceShapeAnalysis shape when available
-  const faceShapeAnalysis = faceAnalysis
-    ? (() => {
-        const m = faceAnalysis.metrics || {};
-        const scale = 300; // convert normalized metrics to approximate pixel values for the report
-        return {
-          shape: faceAnalysis.faceShape,
-          confidence: Number((faceAnalysis.confidence || 0.8).toFixed(2)),
-          faceWidth: Math.round((m.faceWidth || 0) * scale),
-          faceLength: Math.round((m.faceHeight || 0) * scale),
-          cheekboneWidth: Math.round((m.cheekboneWidth || (m.faceWidth || 0) * 0.95) * scale),
-          jawWidth: Math.round((m.jawWidth || 0) * scale),
-          foreheadWidth: Math.round((m.foreheadWidth || 0) * scale),
-          proportions: {
-            upper: 0.3,
-            middle: 0.34,
-            lower: 0.33,
-          },
-          canthalRatio: {
-            innerCanthus: Number((0.2).toFixed(2)),
-            eyeWidth: Number(((m.eyeWidthLeft || 0) / Math.max(0.0001, m.faceWidth || 1)).toFixed(2)),
-            outerCanthus: Number((0.2).toFixed(2)),
-          },
-          recommendations: [`适合的发型建议突出 ${faceAnalysis.faceShape}`],
-        };
-      })()
-    : makeFaceShapeAnalysis();
-
-  // assemble report
+function buildReport(userContext: any | undefined) {
+  const faceShapeAnalysis = makeFaceShapeAnalysis();
+  const featureAnalysis = makeFeatureAnalysis();
   const makeup = makeMakeupRecommendation();
   const influencers = makeInfluencers();
   const products = makeProducts();
-
-  const reportObj: any = {
-    userId: 'user_mock',
-    analysisId,
+  const reportObj = {
+    userId: userContext?.userProfile?.id || 'user_mock',
     timestamp: new Date().toISOString(),
     faceShape: faceShapeAnalysis,
-    features: makeFeatureAnalysis(),
+    features: featureAnalysis,
     makeup,
     influencers,
     products,
   };
 
-  // attach raw face analysis data when available (for history)
-  if (faceAnalysis) reportObj.faceAnalysis = faceAnalysis;
-
-  // allow optional user profile biasing via external agent
-  try {
-    // dynamic import to avoid cycles in some environments
-    const { applyUserProfileBias } = await import('./beauty_ai_agent');
-    if (request.userContext && (request as any).userContext?.userProfile) {
-      const styleResult = applyUserProfileBias(reportObj, (request as any).userContext.userProfile);
-      // record style_result inside makeup.reason for debug (non-destructive)
-      if (styleResult) reportObj.makeup = reportObj.makeup || {}, (reportObj.makeup.reason = reportObj.makeup.reason ? `${reportObj.makeup.reason}; bias:${styleResult}` : `bias:${styleResult}`);
-    }
-  } catch (e) {
-    // ignore if agent unavailable
+  // Apply user profile bias
+  if (userContext?.userProfile) {
+    try {
+      const agentModule = require('./beauty_ai_agent');
+      if (agentModule && agentModule.applyUserProfileBias) {
+        const styleResult = agentModule.applyUserProfileBias(reportObj, userContext.userProfile);
+        if (styleResult) {
+          reportObj.makeup = Object.assign({}, makeup, { reason: styleResult });
+        }
+      }
+    } catch (e) {}
   }
 
-  return {
-    reportId,
-    report: reportObj,
-  };
+  return reportObj;
 }
+

@@ -1,85 +1,81 @@
-﻿import { readSessionId } from "../../../../shared/auth/cookies";
-import { getSession } from "../../../../shared/auth/session";
+import { readSessionId } from "../../../../shared/auth/cookies";
+import { getSession, createSession } from "../../../../shared/auth/session";
 import { storeFile } from '../../../../shared/services/storage';
 import { updateUserProfile } from '../../../../shared/user/profile';
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/jpg']);
 const ALLOWED_EXT = new Set(['jpg', 'jpeg', 'png', 'webp']);
 
-function successResponse(imageUrl: string, fileKey: string) {
-  return new Response(JSON.stringify({ success: true, imageUrl, fileKey }), {
+function successResponse(imageUrl: string, fileId: string) {
+  return new Response(JSON.stringify({ success: true, data: { imageUrl, fileId } }), {
     status: 200,
-    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
   });
 }
 
 function errorResponse(code: string, message: string, status = 400) {
   return new Response(JSON.stringify({ success: false, error: { code, message } }), {
     status,
-    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
   });
 }
 
-async function requireUser(context: any) {
+async function requireOrCreateGuest(context: any) {
   const sessionId = readSessionId(context.request.headers.get('Cookie'));
-  if (!sessionId) return null;
-  return getSession(context.env, sessionId);
+  if (sessionId) {
+    const session = await getSession(context.env, sessionId);
+    if (session && session.user?.id) return session;
+  }
+  const userId = 'guest_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+  const nickname = 'Guest-' + userId.slice(-6);
+  const now = new Date().toISOString();
+  try {
+    await context.env.DB.prepare(
+      "INSERT INTO users (id, nickname, type, role, status, created_at, updated_at) VALUES (?, ?, 'guest', 'user', 'active', ?, ?)"
+    ).bind(userId, nickname, now, now).run();
+  } catch (_) {}
+  var result = await createSession(context.env, { id: userId, email: '', role: 'user', status: 'active' });
+  return result.session;
 }
 
 export const onRequestPost = async (context: any) => {
   try {
     const form = await context.request.formData();
-    const file = form.get('file') as File | null;
-    if (!file) {
-      return errorResponse('NO_FILE', 'No file uploaded (field name must be "file")', 400);
-    }
+    const file = form.get('file');
+    if (!file) return errorResponse('NO_FILE', 'No file uploaded', 400);
 
-    const contentType = (file as any).type || '';
+    var contentType = file.type || '';
     if (!contentType || !contentType.startsWith('image/') || !ALLOWED_MIME.has(contentType)) {
-      return errorResponse('INVALID_FILE_TYPE', 'Unsupported file type', 400);
+      return errorResponse('INVALID_FILE_TYPE', 'Unsupported file type. Allowed: jpg, jpeg, png, webp', 400);
     }
 
-    const size = (file as any).size || 0;
-    if (size > MAX_FILE_SIZE) {
-      return errorResponse('FILE_TOO_LARGE', 'File exceeds maximum size 10MB', 413);
-    }
+    var size = file.size || 0;
+    if (size > MAX_FILE_SIZE) return errorResponse('FILE_TOO_LARGE', 'File exceeds maximum size 10MB', 413);
 
-    const filename = (file as any).name || '';
-    const extMatch = filename.match(/\.([a-zA-Z0-9]+)$/);
-    const ext = extMatch ? extMatch[1].toLowerCase() : (contentType === 'image/png' ? 'png' : contentType === 'image/webp' ? 'webp' : 'jpg');
+    var filename = file.name || '';
+    var extMatch = filename.match(/\.([a-zA-Z0-9]+)$/);
+    var ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
 
     if (!ALLOWED_EXT.has(ext)) {
       return errorResponse('INVALID_FILE_TYPE', 'Unsupported file extension', 400);
     }
 
-    // Ensure mime and extension are consistent
-    if ((contentType === 'image/jpeg' && ext !== 'jpg' && ext !== 'jpeg') ||
-        (contentType === 'image/png' && ext !== 'png') ||
-        (contentType === 'image/webp' && ext !== 'webp')) {
-      return errorResponse('INVALID_FILE_TYPE', 'File extension does not match MIME type', 400);
-    }
+    var fileId = crypto.randomUUID ? crypto.randomUUID() : 'f_' + Date.now().toString(36);
+    var key = fileId + '.' + ext;
 
-    const fileId = (typeof crypto !== 'undefined' && (crypto as any).randomUUID) ? (crypto as any).randomUUID() : 'f_' + Date.now().toString(36);
-    const key = `${fileId}.${ext}`;
+    var arrayBuffer = await file.arrayBuffer();
+    var result = await storeFile(context.env, 'beauty-images', key, arrayBuffer, contentType);
 
-    const arrayBuffer = await (file as any).arrayBuffer();
-
-    const result = await storeFile(context.env, 'beauty-images', key, arrayBuffer, contentType);
-
-    // Associate with user profile if authenticated
     try {
-      const session = await requireUser(context);
-      if (session && context.env?.DB) {
+      var session = await requireOrCreateGuest(context);
+      if (context.env?.DB && session?.user?.id) {
         await updateUserProfile(context.env.DB, session.user.id, { imageUrl: result.url, lastAnalysisImage: result.url });
       }
-    } catch (e) {
-      // Non-fatal
-      console.warn('Failed to update user profile with image url', e);
-    }
+    } catch (e) { console.warn('Failed to update user profile:', e); }
 
     return successResponse(result.url, key);
-  } catch (e: any) {
-    return errorResponse('UPLOAD_FAILED', e?.message || 'Upload failed', 500);
+  } catch (e) {
+    return errorResponse('UPLOAD_FAILED', (e as any)?.message || 'Upload failed', 500);
   }
 };
