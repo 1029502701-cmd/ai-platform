@@ -1,5 +1,5 @@
-
-export async function storeFile(env: any, bucketBindingName: string, key: string, body: ArrayBuffer | Uint8Array | Buffer, contentType?: string): Promise<{ key: string; url: string }> {
+﻿
+export async function storeFile(env: any, bucketBindingName: string, key: string, body: ArrayBuffer | Uint8Array, contentType?: string): Promise<{ key: string; url: string }> {
   const bucket = env?.[bucketBindingName] || env?.ASSETS_BUCKET;
   if (bucket && typeof bucket.put === "function") {
     try {

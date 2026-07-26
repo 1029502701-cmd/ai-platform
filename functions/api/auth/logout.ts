@@ -1,5 +1,6 @@
-import type { PagesFunction } from "@cloudflare/workers-types";
-import { getSession, readSessionId, deleteSession } from "../../../shared/auth/session.ts";
+﻿import type { PagesFunction } from "@cloudflare/workers-types";
+import { getSession } from "../../../shared/auth/session.ts";
+import { readSessionId } from "../../../shared/auth/cookies.ts";
 import { jsonResponse, requireUserAuth } from "../../_auth.ts";
 
 export const onRequestPost = async (context: Parameters<PagesFunction>[0]) => {

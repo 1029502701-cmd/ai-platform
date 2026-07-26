@@ -1,4 +1,4 @@
-import type { D1Database, KVNamespace } from "@cloudflare/workers-types";
+﻿import type { D1Database, KVNamespace } from "@cloudflare/workers-types";
 
 export interface AuthEnv {
   DB: D1Database;
@@ -17,7 +17,7 @@ export interface AuthenticatedUser {
   id: string;
   email: string;
   role: SessionRecord["role"];
-  status: "active" | "suspended" | "deleted";
+  status: "active" | "banned" | "suspended" | "deleted";
 }
 
 export interface AuthenticatedSession {
@@ -26,3 +26,4 @@ export interface AuthenticatedSession {
   createdAt: string;
   expiresAt: string;
 }
+

@@ -13,11 +13,13 @@ export const onRequestGet = async (context: Parameters<PagesFunction>[0]) => {
   }
 };
 
+type BodyType = Record<string, unknown>;
+
 export const onRequestPost = async (context: Parameters<PagesFunction>[0]) => {
   try {
-    const body = await context.request.json();
-    const key = body.key || body.agentKey || "";
-    const name = body.name || "";
+    const body = (await context.request.json()) as BodyType;
+    const key = (body.key as string) || (body.agentKey as string) || "";
+    const name = (body.name as string) || "";
     if (!key || !name) return jsonResponse({ code: "BAD_REQUEST", message: "key and name required" }, 400);
 
     const existing = await getAgent(key, context.env as any);
@@ -25,9 +27,9 @@ export const onRequestPost = async (context: Parameters<PagesFunction>[0]) => {
 
     const { createAgent } = await import("../../../shared/agent/registry.ts");
     const id = await createAgent(context.env as any, {
-      key, name, description: body.description, defaultModel: body.defaultModel,
-      maxSteps: body.maxSteps, knowledgeBaseId: body.knowledgeBaseId,
-      tools: body.tools, config: body.config,
+      key, name, description: (body.description as string) ?? "", defaultModel: (body.defaultModel as string) ?? "",
+      maxSteps: (body.maxSteps as number) ?? 5, knowledgeBaseId: (body.knowledgeBaseId as number) ?? undefined,
+      tools: (body.tools as unknown[]) ?? [], config: (body.config as Record<string, unknown>) ?? {},
     });
 
     return jsonResponse({ success: true, agentId: id }, 201);

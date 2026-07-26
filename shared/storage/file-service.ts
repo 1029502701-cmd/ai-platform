@@ -35,7 +35,8 @@ export class FileStorageService {
 
       const ttlDays = params.ttlDays || 30;
       /* const expiresAt = */ new Date(Date.now() + ttlDays * 86400000).toISOString();
-      log.info("File uploaded", { key, size: params.data.byteLength });
+      const _size = params.data instanceof ArrayBuffer ? (params as any).data.byteLength : ((params as any).data.size || 0);
+      log.info("File uploaded", { key, size: _size });
 
       // Generate presigned URL for R2
       const obj = await bucket.get(key);

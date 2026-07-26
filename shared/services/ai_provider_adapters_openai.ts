@@ -1,4 +1,4 @@
-import type { TextGenerationRequest, TextGenerationResponse } from './ai_provider_types';
+﻿import type { TextGenerationRequest, TextGenerationResponse } from './ai_provider_types';
 import { getLogger } from "../logger";
 
 
@@ -25,7 +25,7 @@ export class OpenAIProvider {
   }
 
   async generateText(req: TextGenerationRequest): Promise<TextGenerationResponse> {
-    let key = null;
+    let key: string | null = null;
     if (this.env && typeof this.env.OPENAI_API_KEY === 'string' && this.env.OPENAI_API_KEY.length > 0) {
       key = this.env.OPENAI_API_KEY;
     }
@@ -44,9 +44,11 @@ export class OpenAIProvider {
       headers: { 'Content-Type': 'application/json', Authorization: authHeader },
       body: JSON.stringify(body),
     }, 10000, 1);
-    const data = await res.json();
-    const choices = (data.choices || []).map((c: any, i: number) => ({ text: c.message?.content ?? '', index: i }));
-    const usage = data.usage ? { promptTokens: data.usage.prompt_tokens, completionTokens: data.usage.completion_tokens, totalTokens: data.usage.total_tokens } : undefined;
-    return { id: data.id || '', model: data.model || 'gpt-3.5-turbo', choices, usage, raw: data };
+    const raw = (await res.json()) as Record<string, unknown>;
+    const choicesArr = raw.choices as Array<{ message?: { content?: string } }> | undefined;
+    const choices = (Array.isArray(choicesArr) ? choicesArr : []).map((c: { message?: { content?: string } }, i: number) => ({ text: c.message?.content ?? '', index: i }));
+    const usageRaw = raw.usage as Record<string, unknown> | undefined;
+    const usage = usageRaw ? { promptTokens: Number(usageRaw["prompt_tokens"] ?? 0), completionTokens: Number(usageRaw["completion_tokens"] ?? 0), totalTokens: Number(usageRaw["total_tokens"] ?? 0) } : undefined;
+    return { id: String(raw.id || ''), model: String(raw.model || 'gpt-3.5-turbo'), choices, usage, raw };
   }
 }
