@@ -1,17 +1,54 @@
-/** Beauty Plugin types — shared between frontend and API */
+﻿/** Beauty Plugin types — shared between frontend and API */
 
 export interface UserContext {
   mock?: boolean;
   userProfile?: any;
 }
 
-export interface BeautyAnalysisRequest {
-  userContext: UserContext;
-  // Optional: URL to an uploaded/accessible image to analyze
-  imageUrl?: string;
+export interface FaceLandmarkPoint {
+  x: number;
+  y: number;
+  z: number;
 }
 
-// ── facial geometry ────────────────────────────────────────────────
+export interface FaceRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface FaceMetricsRaw {
+  faceRatio: number;
+  jawWidth: number;
+  chinLength: number;
+  foreheadWidth: number;
+  cheekboneWidth: number;
+  eyeDistance: number;
+  noseWidth: number;
+  noseLength: number;
+  lipWidth: number;
+  lipHeight: number;
+  confidence: number;
+}
+
+export interface FaceAnalysisRequest {
+  userContext: UserContext;
+  imageUrl?: string;
+  // Browser-side MediaPipe results (sent from frontend)
+  faceAnalysis?: {
+    landmarkCount: number;
+    confidence: number;
+    landmarks: FaceLandmarkPoint[];
+    blendshapes?: Record<string, number>;
+    faceRect: FaceRect;
+    metrics: FaceMetricsRaw;
+  };
+}
+
+
+
+// --- facial geometry ---
 
 export interface FaceShapeAnalysis {
   shape: string;
@@ -30,7 +67,7 @@ export interface FaceShapeAnalysis {
   recommendations: string[];
 }
 
-// ── features ───────────────────────────────────────────────────────
+// ─── features ──────────────────────────────────────
 
 export interface FeatureAnalysis {
   eyes: FeatureDetail;
@@ -49,7 +86,7 @@ export interface FeatureDetail {
   styleRecommendations: string[];
 }
 
-// ── makeup ─────────────────────────────────────────────────────────
+// ─── makeup ──────────────────────────────────────
 
 export interface MakeupRecommendation {
   base: string;
@@ -61,7 +98,7 @@ export interface MakeupRecommendation {
   reason: string;
 }
 
-// ── influencer ─────────────────────────────────────────────────────
+// ─── influencer ──────────────────────────────────────
 
 export interface InfluencerMatch {
   id: string;
@@ -73,7 +110,7 @@ export interface InfluencerMatch {
   reasons: string[];
 }
 
-// ── product ────────────────────────────────────────────────────────
+// ─── product ──────────────────────────────────────
 
 export interface ProductRecommendation {
   id: string;
@@ -86,7 +123,7 @@ export interface ProductRecommendation {
   imageUrl: string;
 }
 
-// ── report ─────────────────────────────────────────────────────────
+// ─── report ──────────────────────────────────────
 
 export interface BeautyReport {
   userId: string;
@@ -109,3 +146,7 @@ export interface BeautyAnalyzeResponse {
   };
   error?: { code: string; message: string };
 }
+
+
+
+export type BeautyAnalysisRequest = FaceAnalysisRequest;

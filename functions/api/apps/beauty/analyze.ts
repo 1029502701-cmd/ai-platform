@@ -21,13 +21,16 @@ export const onRequestPost = async (context: any) => {
     const body = text ? JSON.parse(text) : {};
 
     if (!body || typeof body !== 'object') {
-      return new Response(JSON.stringify({ success: false, error: { code: 'INVALID_BODY', message: 'Request body must be JSON with imageUrl' } }), { status: 400, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
+      return new Response(JSON.stringify({ success: false, error: { code: 'INVALID_BODY', message: 'Request body must be JSON with imageUrl and faceAnalysis' } }), { status: 400, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
     }
 
     const imageUrl = body.imageUrl;
     if (!imageUrl || typeof imageUrl !== 'string') {
-      return new Response(JSON.stringify({ success: false, error: { code: 'MISSING_IMAGE_URL', message: 'imageUrl is required and must be a string' } }), { status: 400, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
+      return new Response(JSON.stringify({ success: false, error: { code: 'MISSING_IMAGE_URL', message: 'imageUrl is required (from upload endpoint)' } }), { status: 400, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
     }
+
+    // Face analysis data from browser MediaPipe
+    const faceAnalysis = body.faceAnalysis;
 
     // ── Auth & Usage Check ──────────────────────────────────────────────
     let session: any = null;
@@ -43,14 +46,12 @@ export const onRequestPost = async (context: any) => {
           userId = session.user.id;
           isGuest = false;
 
-          // Get user profile for bias
           try {
             userProfile = await context.env.DB.prepare(
               'SELECT * FROM beauty_profiles WHERE user_id = ? LIMIT 1'
             ).bind(userId).first();
           } catch (e) { /* table may not exist yet */ }
 
-          // Check daily usage limit (only for guests)
           const limitCheck = await checkAndConsumeLimit(context.env.DB, userId!);
           if (!limitCheck.ok) {
             return new Response(JSON.stringify({ success: false, error: { code: 'DAILY_LIMIT_EXCEEDED', message: 'Free analysis limit reached for today. Upgrade your plan for unlimited analyses.' } }), { status: 429, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
@@ -59,21 +60,18 @@ export const onRequestPost = async (context: any) => {
       }
     } catch (e: any) {
       console.warn('[Beauty] Auth failed:', e.message);
-      // Fall through — guest mode
       isGuest = true;
     }
 
-    // Guest: auto-create user + consume one free allowance
     if (!userId) {
-      // Use the image key as a pseudo-user-id for tracking
       userId = 'guest_' + Date.now().toString(36);
     }
 
     // ── Run Beauty Analysis ─────────────────────────────────────────────
     const userContext = isGuest ? {} : (userProfile ? { userProfile } : {});
     const { reportId, report } = await analyzeBeauty(
-      { userContext, imageUrl },
-      context.env, // pass env for AI Core path
+      { userContext, imageUrl, faceAnalysis },
+      context.env,
     );
 
     // ── Record Usage / Billing ──────────────────────────────────────────
@@ -99,12 +97,10 @@ export const onRequestPost = async (context: any) => {
         const now = new Date().toISOString();
         const r = report as any;
 
-        // Insert or replace report
         await context.env.DB.prepare(
           'INSERT OR REPLACE INTO beauty_reports (id, user_id, report_json, image_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
         ).bind(reportId, userId, JSON.stringify(report), extractImageKey(imageUrl) || null, now, now).run();
 
-        // Update or create profile
         const existing = await context.env.DB.prepare(
           'SELECT id, analysis_count FROM beauty_profiles WHERE user_id = ? LIMIT 1'
         ).bind(userId).first();
@@ -134,26 +130,23 @@ export const onRequestPost = async (context: any) => {
           ).run();
         }
 
-        // Insert analysis history
         const histId = 'bah_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 10);
         await context.env.DB.prepare(
           'INSERT INTO beauty_analysis_history (id, user_id, report_id, image_url, face_analysis_json, style_result, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
-        ).bind(histId, userId, reportId, imageUrl, r?.faceAnalysis ? JSON.stringify(r.faceAnalysis) : null, r?.makeup?.base || null, now).run();
+        ).bind(histId, userId, reportId, imageUrl, faceAnalysis ? JSON.stringify(faceAnalysis) : null, r?.makeup?.base || null, now).run();
 
-        // Update user shared profile image pointer
         await updateUserProfile(context.env.DB, userId, { lastAnalysisImage: imageUrl }).catch(() => {});
       } catch (e: any) {
         console.warn('[Beauty] Failed to persist beauty data:', e.message);
       }
     }
 
-    // ── Return ──────────────────────────────────────────────────────────
     return new Response(JSON.stringify({ success: true, data: { reportId, report } }), { status: 200, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
   } catch (e: any) {
+    // Check for structured errors from analyzeBeauty
+    if (e.message && (e.message.startsWith('FACE_ANALYSIS_REQUIRED') || e.message.startsWith('FACE_NOT_DETECTED'))) {
+      return new Response(JSON.stringify({ success: false, error: { code: 'FACE_ANALYSIS_ERROR', message: e.message.split(': ').slice(1).join(': ') } }), { status: 400, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
+    }
     return new Response(JSON.stringify({ success: false, error: { code: 'INTERNAL_ERROR', message: e.message || 'Analysis failed' } }), { status: 500, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
   }
 };
-
-
-
-

@@ -56,7 +56,7 @@ export class AIQueueWorker {
         const payload = task.payload || {};
         const userId = typeof task.created_by === 'string' ? task.created_by : payload.userId;
         try {
-          const { reportId, report } = await analyzeBeauty({ userContext: { mock: false, userProfile: payload.userProfile }, imageUrl: payload.imageUrl }, this.env);
+          const { reportId, report } = await analyzeBeauty({ userContext: { userProfile: payload.userProfile }, imageUrl: payload.imageUrl, faceAnalysis: payload.faceAnalysis || null }, this.env);
           // persist results if DB available
           if (userId && this.env?.DB) {
             try {
@@ -150,4 +150,5 @@ export class AIQueueWorker {
 
   sleep(ms: number) { return new Promise((r) => setTimeout(r, ms)); }
 }
+
 
