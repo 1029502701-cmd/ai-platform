@@ -32,12 +32,16 @@ jobs:
         run: npx tsc --noEmit -p tsconfig.json
 
   # ==========================================
-  # JOB 2: Build
+  # JOB 2: Build + Deploy via Wrangler
   # ==========================================
-  build:
-    name: Build
+  build-deploy:
+    name: Build & Deploy to Production
     runs-on: ubuntu-latest
     needs: [typecheck]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://ai-platform.pages.dev
     steps:
       - uses: actions/checkout@v4
 
@@ -52,3 +56,10 @@ jobs:
 
       - name: Build frontend
         run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          command: pages deploy . --project-name ai-platform-latest --branch main --upload-source-maps=false
