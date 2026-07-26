@@ -1,4 +1,4 @@
-import { AIQueueService } from './ai_queue_service';
+﻿import { AIQueueService } from './ai_queue_service';
 import { generateViaCore } from './ai_core';
 import type { AITask } from '../types/ai_queue';
 import { analyzeBeauty } from './plugins/beauty.service';
@@ -56,7 +56,7 @@ export class AIQueueWorker {
         const payload = task.payload || {};
         const userId = typeof task.created_by === 'string' ? task.created_by : payload.userId;
         try {
-          const { reportId, report } = await analyzeBeauty({ userContext: { mock: false, userProfile: payload.userProfile }, imageUrl: payload.imageUrl });
+          const { reportId, report } = await analyzeBeauty({ userContext: { mock: false, userProfile: payload.userProfile }, imageUrl: payload.imageUrl }, this.env);
           // persist results if DB available
           if (userId && this.env?.DB) {
             try {
@@ -150,3 +150,4 @@ export class AIQueueWorker {
 
   sleep(ms: number) { return new Promise((r) => setTimeout(r, ms)); }
 }
+
