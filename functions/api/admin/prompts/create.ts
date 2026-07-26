@@ -1,5 +1,5 @@
-import { createPromptInDB, createVersionInDB } from '../../../../shared/services/prompt_manager';
-import { hasRoleForRequest } from '../../../../shared/services/permission';
+import { createPromptInDB, createVersionInDB } from '../../../../shared/services/prompt_manager.ts';
+import { hasRoleForRequest } from '../../../../shared/services/permission.ts';
 
 export const onRequestPost = async (context: any) => {
   const { request } = context;

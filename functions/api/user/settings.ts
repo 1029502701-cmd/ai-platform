@@ -1,9 +1,9 @@
 import type { PagesFunction } from "@cloudflare/workers-types";
-import type { AuthEnv } from "../../../shared/auth/types";
-import { readSessionId } from "../../../shared/auth/cookies";
-import { getSession } from "../../../shared/auth/session";
-import { DEFAULT_SETTINGS, getUserSettingsFromDb, mergeSettings, upsertUserSettingsToDb, validatePartialSettings } from "../../../shared/user/settings";
-import { getCachedSettings, putCachedSettings } from "../../../shared/user/settings_cache";
+import type { AuthEnv } from '../../../shared/auth/types.ts';
+import { readSessionId } from '../../../shared/auth/cookies.ts';
+import { getSession } from '../../../shared/auth/session.ts';
+import { DEFAULT_SETTINGS, getUserSettingsFromDb, mergeSettings, upsertUserSettingsToDb, validatePartialSettings } from '../../../shared/user/settings.ts';
+import { getCachedSettings, putCachedSettings } from '../../../shared/user/settings_cache.ts';
 
 type RequestContext = Parameters<PagesFunction<AuthEnv>>[0];
 

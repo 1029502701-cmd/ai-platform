@@ -1,0 +1,48 @@
+﻿# ============================================================
+# wrangler.toml.example
+# ============================================================
+# Template for Cloudflare Pages + Workers deployment.
+#
+# 1. Copy to wrangler.toml (the real config already tracked).
+# 2. Replace placeholder values with your real resource IDs.
+# 3. NEVER commit real secrets to git.
+#
+# See DEPLOYMENT.md for full setup instructions.
+# ============================================================
+
+name = "ai-platform"
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-07-24"
+
+[vars]
+NODE_ENV = "production"
+API_VERSION = "v1"
+
+# ---- D1 Database Binding ----
+# Run: wrangler d1 create ai-platform-db-prod
+[[d1_databases]]
+binding = "DB"
+database_name = "ai-platform-db-prod"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# ---- KV Namespaces ----
+# Run: wrangler kv:namespace create USER_CACHE
+[[kv_namespaces]]
+binding = "USER_CACHE"
+id = "REPLACE_WITH_USER_CACHE_KV_ID"
+
+# Run: wrangler kv:namespace create RATE_LIMITS
+[[kv_namespaces]]
+binding = "RATE_LIMITS"
+id = "REPLACE_WITH_RATE_LIMITS_KV_ID"
+
+# Run: wrangler kv:namespace create FEATURE_FLAGS
+[[kv_namespaces]]
+binding = "FEATURE_FLAGS"
+id = "REPLACE_WITH_FEATURE_FLAGS_KV_ID"
+
+# ---- R2 Bucket ----
+# Run: wrangler r2 bucket create ai-platform-assets-prod
+[[r2_buckets]]
+binding = "ASSETS_BUCKET"
+bucket_name = "ai-platform-assets-prod"

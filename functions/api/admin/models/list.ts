@@ -1,4 +1,4 @@
-import { listModelsFromMemory, loadModelsFromBindings } from '../../../../shared/services/ai_model_manager';
+import { listModelsFromMemory, loadModelsFromBindings } from '../../../../shared/services/ai_model_manager.ts';
 
 export const onRequestGet = async (context: any) => {
   const { request } = context;

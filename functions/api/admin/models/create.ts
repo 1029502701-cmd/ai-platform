@@ -1,4 +1,4 @@
-import { createOrUpdateModelInDB } from '../../../../shared/services/ai_model_manager';
+import { createOrUpdateModelInDB } from '../../../../shared/services/ai_model_manager.ts';
 
 export const onRequestPost = async (context: any) => {
   const { request } = context;

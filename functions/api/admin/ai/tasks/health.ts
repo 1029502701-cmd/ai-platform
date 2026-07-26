@@ -1,5 +1,5 @@
-import { QueueMaintenanceService } from '../../../../../shared/services/queue_maintenance';
-import { hasRoleForRequest } from '../../../../../shared/services/permission';
+import { QueueMaintenanceService } from '../../../../../shared/services/queue_maintenance.ts';
+import { hasRoleForRequest } from '../../../../../shared/services/permission.ts';
 
 export const onRequestGet = async (context: any) => {
   const { env, request } = context;

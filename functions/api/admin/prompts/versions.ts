@@ -1,5 +1,5 @@
-import { loadPromptsFromBindings, getPromptFromMemory } from '../../../../shared/services/prompt_manager';
-import { hasRoleForRequest } from '../../../../shared/services/permission';
+import { loadPromptsFromBindings, getPromptFromMemory } from '../../../../shared/services/prompt_manager.ts';
+import { hasRoleForRequest } from '../../../../shared/services/permission.ts';
 
 export const onRequestGet = async (context: any) => {
   const { request } = context;

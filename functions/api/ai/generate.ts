@@ -1,6 +1,6 @@
-import { generateViaCore } from '../../../shared/services/ai_core';
-import { getSession } from '../../../shared/auth/session';
-import { readSessionId } from '../../../shared/auth/cookies';
+import { generateViaCore } from '../../../shared/services/ai_core.ts';
+import { getSession } from '../../../shared/auth/session.ts';
+import { readSessionId } from '../../../shared/auth/cookies.ts';
 
 export const onRequestPost = async (context: any) => {
   const { request, env } = context;

@@ -1,0 +1,18 @@
+﻿{
+  ""name"": ""@ai-saas/auth"",
+  ""version"": ""0.1.0"",
+  ""type"": ""module"",
+  ""main"": ""./src/index.ts"",
+  ""exports"": {
+    "".": ""./src/index.ts"",
+    ""./types"": ""./src/types.ts"",
+    ""./session"": ""./src/session.ts"",
+    ""./rbac"": ""./src/rbac.ts"",
+    ""./cookies"": ""./src/cookies.ts"",
+    ""./guest"": ""./src/guest.ts""
+  },
+  ""dependencies"": {},
+  ""devDependencies"": {
+    ""@cloudflare/workers-types"": ""^5.20260724.1""
+  }
+}

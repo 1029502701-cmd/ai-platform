@@ -1,9 +1,9 @@
-﻿import { analyzeBeauty } from '../../../../shared/services/plugins/beauty.service';
-import { readSessionId } from "../../../../shared/auth/cookies";
-import { getSession } from "../../../../shared/auth/session";
-import { enqueue } from '../../../../shared/services/queue';
-import { BillingService } from '../../../../shared/services/billing.service';
-import { updateUserProfile } from '../../../../shared/user/profile';
+import { analyzeBeauty } from '../../../../shared/services/plugins/beauty.service.ts';
+import { readSessionId } from '../../../../shared/auth/cookies.ts';
+import { getSession } from '../../../../shared/auth/session.ts';
+import { enqueue } from '../../../../shared/services/queue.ts';
+import { BillingService } from '../../../../shared/services/billing.service.ts';
+import { updateUserProfile } from '../../../../shared/user/profile.ts';
 
 export const onRequestPost = async (context: any) => {
   try {

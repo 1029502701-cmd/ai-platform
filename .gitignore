@@ -1,12 +1,30 @@
-﻿# Ignore dependency directories
-node_modules/
+# ==========================================
+# AI SaaS Platform - .gitignore
+# Release 1.0
+# ==========================================
 
-# Cloudflare local dev
-.dev.vars
-.wrangler/
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
 
 # Build output
 dist/
+build/
+*.tsbuildinfo
+
+# Cloudflare local/dev
+.wrangler/
+.dev.vars
+.dev.vars.example
+functions/.dev.vars
+
+# Environment secrets (NEVER commit secrets)
+.env
+.env.local
+.env.production
+.env.staging
+.env.development
 
 # IDE
 .vscode/*
@@ -15,27 +33,87 @@ dist/
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
 
 # OS
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # Logs
 *.log
 npm-debug.log*
-
-# Environment files (except example)
-.env
-!.dev.vars.example
+yarn-debug.log*
+yarn-error.log*
+server.log
+dev_server_output.log
 
 # Test coverage
 coverage/
 *.lcov
+.nyc_output/
 
 # Platform-specific cache
 .cache/
 .vite/
 
-# Package locks - use npm, not pnpm
-pnpm-lock.yaml
+# Drizzle
+drizzle/*.db
 
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+# Python scripts (migration helpers, only keep final SQL)
+build_*.py
+do_fix*.py
+_fix_*.py
+build_routes.py
+
+# Admin build artifacts
+admin/dist/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Cloudflare state
+.wrangler/state/v3/d1/*.sqlite-shm
+.wrangler/state/v3/d1/*.sqlite-wal
+
+# Source maps (keep for debugging but don't commit)
+# *.map
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+*.lnk
+
+# Git
+.gitignore
+.gitattributes
+
+# GitHub
+.github/ISSUE_TEMPLATE/
+.github/CODEOWNERS
+
+# Release notes (keep in repo though)
+# CHANGELOG.md
+
+# Misc
+*.log.gz
+
+# Local development overrides
+.overrides/

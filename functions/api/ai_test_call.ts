@@ -1,6 +1,6 @@
-import { generateText, registerProvider } from '../../shared/services/ai_provider_service';
-import { seedExample } from '../../shared/services/ai_provider_registry';
-import { MockProvider } from '../../shared/services/ai_provider_adapters_mock';
+import { generateText, registerProvider } from '../../shared/services/ai_provider_service.ts';
+import { seedExample } from '../../shared/services/ai_provider_registry.ts';
+import { MockProvider } from '../../shared/services/ai_provider_adapters_mock.ts';
 
 export const onRequestGet = async (context: any) => {
   const { request } = context;

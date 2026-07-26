@@ -1,5 +1,5 @@
-import { AIQueueService } from '../../../../shared/services/ai_queue_service';
-import { hasRoleForRequest } from '../../../../shared/services/permission';
+import { AIQueueService } from '../../../../shared/services/ai_queue_service.ts';
+import { hasRoleForRequest } from '../../../../shared/services/permission.ts';
 
 export const onRequestPost = async (context: any) => {
   const { request, env, params } = context;

@@ -1,7 +1,7 @@
 import type { PagesFunction } from "@cloudflare/workers-types";
-import { clearSessionCookie, readSessionId } from "../../../shared/auth/cookies";
-import { getSession, revokeSession } from "../../../shared/auth/session";
-import type { AuthEnv } from "../../../shared/auth/types";
+import { clearSessionCookie, readSessionId } from '../../../shared/auth/cookies.ts';
+import { getSession, revokeSession } from '../../../shared/auth/session.ts';
+import type { AuthEnv } from '../../../shared/auth/types.ts';
 
 type RequestContext = Parameters<PagesFunction<AuthEnv>>[0];
 

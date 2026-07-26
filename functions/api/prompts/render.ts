@@ -1,4 +1,4 @@
-import { renderPrompt } from '../../../shared/services/prompt_manager';
+import { renderPrompt } from '../../../shared/services/prompt_manager.ts';
 
 export const onRequestPost = async (context: any) => {
   const { request } = context;

@@ -1,25 +1,29 @@
-import { hasRoleForRequest } from '../../../../shared/services/permission';
-import { AnalyticsService } from '../../../../shared/services/analytics.service';
+import type { PagesFunction } from '@cloudflare/workers-types';
+import { requireAdminAuth, jsonResponse } from '../../../_auth.ts';
 
-export const onRequestGet = async (context:any) => {
-  const { env, request } = context;
-  const ok = await hasRoleForRequest('admin', { env, request });
-  if (!ok) return new Response(JSON.stringify({ success:false, error:{ code:'FORBIDDEN', message:'admin only' } }), { status:403, headers:{ 'Content-Type':'application/json' } });
+export const onRequestGet = async (context: Parameters<PagesFunction>[0]) => {
+  const auth = await requireAdminAuth(context);
+  if (!auth) return jsonResponse({ code: 'FORBIDDEN_ADMIN_REQUIRED', message: 'Admin access required' }, 403);
 
-  const analytics = new AnalyticsService(env.DB);
+  const db = (context.env as any).DB;
 
-  const total = await analytics.getCostReport();
-  const today = await analytics.repo.getTodayCounts();
+  // Today's credit consumption
+  const todayCredits: any = await db.prepare("SELECT COALESCE(SUM(credits_used), 0) as total FROM ai_usage WHERE created_at >= date('now', '-1 day')").first();
+  // Total revenue from topups/subscriptions
+  const revenue: any = await db.prepare("SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type IN ('topup', 'subscription_grant')").first();
+  // Total cost in USD
+  const costUsd: any = await db.prepare("SELECT COALESCE(SUM(cost_usd), 0) as total FROM ai_usage").first();
+  // Transaction count
+  const txCount: any = await db.prepare("SELECT COUNT(*) as cnt FROM transactions WHERE status = 'completed'").first();
+  // Wallet totals
+  const wallets: any = await db.prepare("SELECT COUNT(*) as cnt, COALESCE(SUM(credits), 0) as total_credits FROM wallets").first();
 
-  // users and totalCredits from wallet table
-  const row = await env.DB.prepare('SELECT COUNT(*) as users, SUM(credits) as totalCredits FROM wallet').first();
-
-  const data = {
-    users: Number(row?.users || 0),
-    totalCredits: Number(row?.totalCredits || 0),
-    todayUsage: today.todayRequests,
-    todayCost: today.todayCost,
-    totalCost: total.totalCost
-  };
-  return new Response(JSON.stringify({ success:true, data }), { status:200, headers:{ 'Content-Type':'application/json' } });
+  return jsonResponse({
+    today_credits: Number(todayCredits?.total ?? 0),
+    total_revenue: Number(revenue?.total ?? 0),
+    total_cost_usd: Number(costUsd?.total ?? 0),
+    total_transactions: Number(txCount?.cnt ?? 0),
+    wallet_count: Number(wallets?.cnt ?? 0),
+    total_wallet_credits: Number(wallets?.total_credits ?? 0),
+  }, 200);
 };

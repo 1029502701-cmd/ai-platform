@@ -29,5 +29,5 @@
     },
     "types": ["node"]
   },
-  "include": ["src", "functions", "shared"]
+  "include": ["src", "functions", "shared", "worker-configuration.d.ts"]
 }

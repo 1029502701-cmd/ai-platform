@@ -1,4 +1,4 @@
-import { hasRoleForRequest } from '../../../../shared/services/permission';
+import { hasRoleForRequest } from '../../../../shared/services/permission.ts';
 
 export const onRequestGet = async (context:any) => {
   const { env, request } = context;

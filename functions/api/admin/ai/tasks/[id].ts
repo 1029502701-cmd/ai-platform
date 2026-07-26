@@ -1,5 +1,5 @@
-import { AdminTaskService } from '../../../../../shared/services/admin_task_service';
-import { hasRoleForRequest } from '../../../../../shared/services/permission';
+import { AdminTaskService } from '../../../../../shared/services/admin_task_service.ts';
+import { hasRoleForRequest } from '../../../../../shared/services/permission.ts';
 
 export const onRequestGet = async (context: any) => {
   const { request, env, params } = context;

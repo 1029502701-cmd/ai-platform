@@ -1,8 +1,8 @@
-import { getSession } from '../../../shared/auth/session';
-import { readSessionId } from '../../../shared/auth/cookies';
-import * as authz from '../../../shared/auth/authorization_rbac';
+import { getSession } from '../../../shared/auth/session.ts';
+import { readSessionId } from '../../../shared/auth/cookies.ts';
+import * as authz from '../../../shared/auth/authorization_rbac.ts';
 import type { PagesFunction } from "@cloudflare/workers-types";
-import type { AuthEnv } from "../../../shared/auth/types";
+import type { AuthEnv } from '../../../shared/auth/types.ts';
 
 type RequestContext = Parameters<PagesFunction<AuthEnv>>[0];
 

@@ -1,6 +1,6 @@
-import { readSessionId } from "../../../../shared/auth/cookies";
-import { getSession } from "../../../../shared/auth/session";
-import { hasRoleForRequest } from '../../../../shared/services/permission';
+import { readSessionId } from '../../../../shared/auth/cookies.ts';
+import { getSession } from '../../../../shared/auth/session.ts';
+import { hasRoleForRequest } from '../../../../shared/services/permission.ts';
 import { BeautyRepository } from '../../../../database/beauty_repository';
 
 export const onRequestGet = async (context: any) => {

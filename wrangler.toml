@@ -1,16 +1,27 @@
-﻿name = "ai-platform"
+name = "ai-platform"
 pages_build_output_dir = "./dist"
-compatibility_date = "2026-07-24"
+compatibility_date = "2026-07-25"
+compatibility_flags = ["nodejs_compat"]
 
 [vars]
 NODE_ENV = "production"
 API_VERSION = "v1"
+DEFAULT_AI_PROVIDER = "openai"
+FALLBACK_AI_PROVIDERS = "anthropic,gemini,deepseek"
+TASK_EXECUTION_TIMEOUT_MS = "300000"
+STALE_RUNNING_MS = "7200000"
+MAX_QUEUE_WORKERS = "4"
 
+# D1 Database
+# In Cloudflare Pages: set DB binding in Dashboard (not here)
+# Keep database_name for local dev only
 [[d1_databases]]
 binding = "DB"
 database_name = "ai-platform-db"
 database_id = "23b19cc8-2a4d-4c4a-a9a7-a30ec61820c9"
 
+# KV Namespaces
+# In Cloudflare Pages: set USER_CACHE, RATE_LIMITS, FEATURE_FLAGS bindings in Dashboard
 [[kv_namespaces]]
 binding = "USER_CACHE"
 id = "3370d3a1db49404aa2615c706a5e15eb"
@@ -23,6 +34,20 @@ id = "2c2c7dc47eb44448ba93c06f45d3f984"
 binding = "FEATURE_FLAGS"
 id = "5c4baaf523b74520afb3c04c19d751a6"
 
+# R2 Bucket
 [[r2_buckets]]
 binding = "ASSETS_BUCKET"
 bucket_name = "ai-platform-assets"
+
+# Queues
+[[queues.producers]]
+queue = "ai-tasks"
+binding = "AI_TASK_QUEUE"
+
+[[queues.producers]]
+queue = "billing-events"
+binding = "BILLING_QUEUE"
+
+# Cron triggers (optional - enable when needed)
+# [triggers]
+# crons = ["/5 * * * *"]

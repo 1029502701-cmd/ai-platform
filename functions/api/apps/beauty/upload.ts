@@ -1,7 +1,7 @@
-import { readSessionId } from "../../../../shared/auth/cookies";
-import { getSession, createSession } from "../../../../shared/auth/session";
-import { storeFile } from '../../../../shared/services/storage';
-import { updateUserProfile } from '../../../../shared/user/profile';
+import { readSessionId } from '../../../../shared/auth/cookies.ts';
+import { getSession, createSession } from '../../../../shared/auth/session.ts';
+import { storeFile } from '../../../../shared/services/storage.ts';
+import { updateUserProfile } from '../../../../shared/user/profile.ts';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/jpg']);

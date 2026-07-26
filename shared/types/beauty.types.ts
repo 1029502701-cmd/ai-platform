@@ -1,4 +1,4 @@
-﻿/** Beauty Plugin types — shared between frontend and API */
+/** Beauty Plugin types — shared between frontend and API */
 
 export interface UserContext {
   mock?: boolean;

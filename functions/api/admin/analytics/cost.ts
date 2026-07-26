@@ -1,5 +1,5 @@
-import { AnalyticsService } from '../../../../shared/services/analytics.service';
-import { hasRoleForRequest } from '../../../../shared/services/permission';
+import { AnalyticsService } from '../../../../shared/services/analytics.service.ts';
+import { hasRoleForRequest } from '../../../../shared/services/permission.ts';
 
 export const onRequestGet = async (context: any) => {
   const { env, request } = context;

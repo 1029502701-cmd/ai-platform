@@ -1,5 +1,5 @@
-import { hasRoleForRequest } from '../../../../shared/services/permission';
-import { PlanRepository } from '../../../../shared/services/plan.repository';
+import { hasRoleForRequest } from '../../../../shared/services/permission.ts';
+import { PlanRepository } from '../../../../shared/services/plan.repository.ts';
 
 export const onRequestGet = async (context:any) => {
   const { env, request } = context;

@@ -1,4 +1,4 @@
-﻿export interface UserProfile {
+export interface UserProfile {
   userId: string;
   email: string;
   role: "user" | "admin" | "super_admin";

@@ -1,5 +1,5 @@
-import { listDocuments } from '../../../../shared/services/knowledge_manager';
-import { hasRoleForRequest } from '../../../../shared/services/permission';
+import { listDocuments } from '../../../../shared/services/knowledge_manager.ts';
+import { hasRoleForRequest } from '../../../../shared/services/permission.ts';
 
 export const onRequestGet = async (context: any) => {
   const { request } = context;

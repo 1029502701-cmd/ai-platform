@@ -1,5 +1,5 @@
-import { readSessionId } from "../../../../shared/auth/cookies";
-import { getSession } from "../../../../shared/auth/session";
+import { readSessionId } from '../../../../shared/auth/cookies.ts';
+import { getSession } from '../../../../shared/auth/session.ts';
 import { BeautyRepository } from '../../../../database/beauty_repository';
 
 export const onRequestGet = async (context: any) => {

@@ -1,5 +1,5 @@
-import { createBaseInDB } from '../../../../shared/services/knowledge_manager';
-import { hasRoleForRequest } from '../../../../shared/services/permission';
+import { createBaseInDB } from '../../../../shared/services/knowledge_manager.ts';
+import { hasRoleForRequest } from '../../../../shared/services/permission.ts';
 
 export const onRequestPost = async (context: any) => {
   const { request } = context;

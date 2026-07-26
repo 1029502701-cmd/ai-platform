@@ -1,4 +1,4 @@
-﻿import { getModelConfig, loadRegistryFromBindings } from './ai_provider_registry';
+import { getModelConfig, loadRegistryFromBindings } from './ai_provider_registry';
 import type { TextGenerationRequest, TextGenerationResponse } from './ai_provider_types';
 
 const providers: Record<string, any> = {};

@@ -1,4 +1,6 @@
 import type { TextGenerationRequest, TextGenerationResponse } from './ai_provider_types';
+import { getLogger } from "../logger";
+
 
 export class OpenAIProvider {
   env: any;

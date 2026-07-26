@@ -1,4 +1,4 @@
-﻿import { generateTextWithPipeline, generateChatWithPipeline } from './ai_service';
+import { generateTextWithPipeline, generateChatWithPipeline } from './ai_service';
 import { BillingMiddleware } from './billing_middleware';
 import { initAIService, registerProvider } from './ai_provider_service';
 import { MockProvider } from './ai_provider_adapters_mock';

@@ -1,4 +1,4 @@
-import { AIQueueService } from '../../../../shared/services/ai_queue_service';
+import { AIQueueService } from '../../../../shared/services/ai_queue_service.ts';
 
 export const onRequestPost = async (context: any) => {
   const { request, env } = context;

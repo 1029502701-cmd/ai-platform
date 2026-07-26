@@ -1,0 +1,1 @@
+{"include":["/api/*","/api","/health","/__pages_functions/*","/webhooks/*","/api/knowledge*"],"version":1,"exclude":["/static/*","/favicon.svg","*.css","*.js"]}

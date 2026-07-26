@@ -1,0 +1,13 @@
+﻿{
+  "name": "@ai-saas/queue",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260724.1"
+  }
+}

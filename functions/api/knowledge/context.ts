@@ -1,4 +1,4 @@
-import { assembleContext } from '../../../shared/services/knowledge_manager';
+import { assembleContext } from '../../../shared/services/knowledge_manager.ts';
 
 export const onRequestPost = async (context: any) => {
   const { request } = context;

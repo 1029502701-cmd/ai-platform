@@ -1,69 +1,52 @@
 import type { PagesFunction } from "@cloudflare/workers-types";
-import { readSessionId } from "../../../shared/auth/cookies";
-import { getSession } from "../../../shared/auth/session";
-import type { AuthEnv } from "../../../shared/auth/types";
-import { getUserProfile, updateUserProfile, validateProfileUpdate } from "../../../shared/user/profile";
+import { jsonResponse, requireUserAuth } from "../../_auth.ts";
 
-type RequestContext = Parameters<PagesFunction<AuthEnv>>[0];
+export const onRequestGet = async (context: Parameters<PagesFunction>[0]) => {
+    const auth = await requireUserAuth(context);
+    if (!auth) return jsonResponse({ code: "UNAUTHENTICATED", message: "Login required" }, 401);
+    const env = context.env as any;
+    const db = env.DB;
+    const userId = auth.user.id;
 
-function jsonResponse(data: unknown, status: number): Response {
-  const success = status < 400;
-  return new Response(
-    JSON.stringify({ success, data: success ? data : null, error: success ? null : data, meta: {} }),
-    {
-      status,
-      headers: {
-        "Cache-Control": "no-store",
-        "Content-Type": "application/json; charset=utf-8",
-      },
-    },
-  );
-}
+    try {
+        const user: any = await db.prepare("SELECT id, nickname, avatar, type, role, status, created_at, last_login_at FROM users WHERE id = ?").bind(userId).first();
+        if (!user) return jsonResponse({ code: "NOT_FOUND" }, 404);
 
-async function requireUser(context: RequestContext) {
-  const sessionId = readSessionId(context.request.headers.get("Cookie"));
-  if (!sessionId) {
-    return null;
-  }
-  return getSession(context.env, sessionId);
-}
+        // Usage today
+        const usageToday: any = await db.prepare(
+            "SELECT COUNT(*) as calls, COALESCE(SUM(tokens_total),0) as tokens, COALESCE(SUM(cost_usd),0) as cost FROM ai_usage WHERE created_by = ? AND date(created_at) = date('now')"
+        ).bind(userId).first();
 
-export const onRequestGet = async (context: RequestContext) => {
-  const session = await requireUser(context);
-  if (!session) {
-    return jsonResponse({ code: "UNAUTHENTICATED", message: "Authentication required" }, 401);
-  }
+        // Plan info
+        const planAssign: any = await db.prepare("SELECT plan_name FROM user_plan_assignments WHERE user_id = ?").bind(userId).first();
 
-  const profile = await getUserProfile(context.env.DB, session.user.id);
-  return profile
-    ? jsonResponse(profile, 200)
-    : jsonResponse({ code: "USER_NOT_FOUND", message: "User not found" }, 404);
+        return jsonResponse({
+            profile: { ...user, planName: planAssign?.plan_name || "free" },
+            usageToday: { calls: usageToday?.calls ?? 0, tokens: usageToday?.tokens ?? 0, cost: usageToday?.cost ?? 0 },
+        }, 200);
+    } catch (e) {
+        return jsonResponse({ code: "QUERY_ERROR", message: e instanceof Error ? e.message : "Unknown" }, 500);
+    }
 };
 
-export const onRequestPatch = async (context: RequestContext) => {
-  const session = await requireUser(context);
-  if (!session) {
-    return jsonResponse({ code: "UNAUTHENTICATED", message: "Authentication required" }, 401);
-  }
+export const onRequestPatch = async (context: Parameters<PagesFunction>[0]) => {
+    const auth = await requireUserAuth(context);
+    if (!auth) return jsonResponse({ code: "UNAUTHENTICATED", message: "Login required" }, 401);
+    const env = context.env as any;
+    const db = env.DB;
+    const userId = auth.user.id;
 
-  let body: unknown;
-  try {
-    const text = await context.request.text();
-      body = text ? JSON.parse(text) : {};
-  } catch {
-    return jsonResponse({ code: "INVALID_JSON", message: "Request body must be valid JSON" }, 400);
-  }
-
-  try {
-    const input = validateProfileUpdate(body);
-    const profile = await updateUserProfile(context.env.DB, session.user.id, input);
-    return profile
-      ? jsonResponse(profile, 200)
-      : jsonResponse({ code: "USER_NOT_FOUND", message: "User not found" }, 404);
-  } catch (error) {
-    return jsonResponse(
-      { code: "INVALID_PROFILE", message: error instanceof Error ? error.message : "Invalid profile" },
-      400,
-    );
-  }
+    try {
+        const body = await context.request.json() as any;
+        const fields: string[] = [];
+        const params: any[] = [];
+        if (body.nickname) { fields.push("nickname=?"); params.push(body.nickname); }
+        if (body.avatar) { fields.push("avatar=?"); params.push(body.avatar); }
+        if (fields.length === 0) return jsonResponse({ code: "NO_FIELDS" }, 400);
+        params.push(userId);
+        await db.prepare("UPDATE users SET " + fields.join(",") + " WHERE id=?").bind(...params).run();
+        return jsonResponse({ success: true }, 200);
+    } catch (e) {
+        return jsonResponse({ code: "UPDATE_ERROR", message: e instanceof Error ? e.message : "Unknown" }, 500);
+    }
 };

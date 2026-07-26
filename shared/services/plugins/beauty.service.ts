@@ -1,4 +1,4 @@
-﻿/** Beauty Plugin service — mock analysis logic */
+/** Beauty Plugin service — mock analysis logic */
 
 import type {
   BeautyAnalysisRequest,

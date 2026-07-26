@@ -1,4 +1,4 @@
-import { getFile } from '../../../../shared/services/storage';
+import { getFile } from '../../../../shared/services/storage.ts';
 
 export const onRequestGet = async (context: any) => {
   try {

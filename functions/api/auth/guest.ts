@@ -1,6 +1,6 @@
 import type { PagesFunction } from "@cloudflare/workers-types";
-import { createSession } from "../../../shared/auth/session";
-import type { AuthEnv } from "../../../shared/auth/types";
+import { createSession } from '../../../shared/auth/session.ts';
+import type { AuthEnv } from '../../../shared/auth/types.ts';
 
 type RequestContext = Parameters<PagesFunction<AuthEnv>>[0];
 
@@ -31,6 +31,17 @@ export const onRequestPost = async (context: RequestContext) => {
     const { sessionId, session } = await createSession(env, { id: userId, email: "", role: "user", status: "active" });
 
     return jsonResponse({ success: true, data: { userId, guestToken: sessionId, expiresAt: session.expiresAt } });
+
+    // Seed plan and quota for new guest user
+    try {
+        const db = env.DB;
+        await db.prepare("INSERT OR IGNORE INTO user_plan_assignments (user_id, plan_name) VALUES (?, 'free')").bind(userId).run();
+        await db.prepare(
+            "INSERT OR IGNORE INTO user_quotas (user_id, quota_type, total_limit, used_count, reset_interval) VALUES (?, 'daily_requests', 5, 0, 'daily')"
+        ).bind(userId).run();
+    } catch {
+        // Seeding failure must not break guest creation
+    }
   } catch (e: any) {
     return jsonResponse({ success: false, error: e.message || String(e) }, 500);
   }

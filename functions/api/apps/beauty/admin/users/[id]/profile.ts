@@ -1,4 +1,4 @@
-import { hasRoleForRequest } from '../../../../../../../shared/services/permission';
+import { hasRoleForRequest } from '../../../../../../../shared/services/permission.ts';
 import { BeautyRepository } from '../../../../../../../database/beauty_repository';
 
 export const onRequestGet = async (context: any) => {

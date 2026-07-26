@@ -1,4 +1,4 @@
-import { storeFile } from '../../../../../shared/services/storage';
+import { storeFile } from '../../../../../shared/services/storage.ts';
 
 export const onRequestPost = async (context: any) => {
   try {

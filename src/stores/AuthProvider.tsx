@@ -1,107 +1,119 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+﻿import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 
-interface UserInfo {
-  id: string;
-  nickname?: string | null;
-  type?: string | null;
+export interface GuestToken {
+    userId: string;
+    guestToken: string;
+    expiresAt: string;
 }
 
-interface AuthContextValue {
-  user: UserInfo | null;
-  token: string | null;
-  bindWeChat: () => Promise<void>;
+export interface UserProfile {
+    id: string;
+    nickname: string;
+    avatar: string | null;
+    type: string;
+    role: string;
+    status: string;
+    created_at: string;
+    last_login_at: string | null;
+    planName: string;
 }
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+export interface UsageToday {
+    calls: number;
+    tokens: number;
+    cost: number;
+}
+
+interface AuthState {
+    user: UserProfile | null;
+    guestToken: GuestToken | null;
+    session: any | null;
+    loading: boolean;
+    error: string | null;
+}
+
+export const AuthContext = createContext<{
+    state: AuthState;
+    loginAsGuest: () => Promise<void>;
+    logout: () => Promise<void>;
+    refreshProfile: () => Promise<void>;
+    updateProfile: (data: Partial<Pick<UserProfile, 'nickname' | 'avatar'>>) => Promise<boolean>;
+    isGuest: () => boolean;
+} | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+    const [state, setState] = useState<AuthState>({
+        user: null,
+        guestToken: null,
+        session: null,
+        loading: true,
+        error: null,
+    });
+
+    const loginAsGuest = async () => {
+        try {
+            const res = await fetch("/api/auth/guest", { method: "POST" });
+            const data = await res.json();
+            if (data.success && data.data) {
+                setState(prev => ({ ...prev, guestToken: data.data, user: { ...data.data, nickname: "Guest", avatar: null, type: "guest", role: "user", status: "active", planName: "free", created_at: new Date().toISOString(), last_login_at: null } }));
+            }
+        } catch (e) {
+            console.error("Guest login failed:", e);
+        }
+    };
+
+    const logout = async () => {
+        try {
+            await fetch("/api/auth/logout", { method: "POST" });
+        } catch {}
+        setState({ user: null, guestToken: null, session: null, loading: false, error: null });
+    };
+
+    const refreshProfile = async () => {
+        try {
+            const res = await fetch("/api/user/profile");
+            const data = await res.json();
+            if (data.success && data.data) {
+                setState(prev => ({ ...prev, user: data.data.profile, error: null }));
+            }
+        } catch (e) {
+            console.error("Profile load failed:", e);
+        }
+    };
+
+    const updateProfile = async (updates: Partial<Pick<UserProfile, 'nickname' | 'avatar'>>) => {
+        try {
+            const res = await fetch("/api/user/profile", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updates),
+            });
+            const data = await res.json();
+            return data.success;
+        } catch {
+            return false;
+        }
+    };
+
+    const isGuest = () => !!state.guestToken || state.user?.type === "guest";
+
+    useEffect(() => {
+        // Auto-login as guest on mount
+        loginAsGuest();
+        refreshProfile();
+    }, []);
+
+    return (
+        <AuthContext.Provider value={{ state, loginAsGuest, logout, refreshProfile, updateProfile, isGuest }}>
+            {children}
+        </AuthContext.Provider>
+    );
+}
+
+export default AuthProvider;
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-  return ctx;
-}
-
-export default function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserInfo | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Init: check localStorage for guestToken
-    const stored = localStorage.getItem('guestToken');
-    const storedUser = localStorage.getItem('guestUser');
-    if (stored) {
-      setToken(stored);
-      try {
-        setUser(storedUser ? JSON.parse(storedUser) : null);
-      } catch (e) {
-        setUser(null);
-      }
-    } else {
-      // create guest session
-      (async () => {
-        try {
-          const res = await fetch('/api/auth/guest', { method: 'POST' });
-          const js = await res.json();
-          if (js && js.success && js.data) {
-            const t = js.data.guestToken;
-            const uid = js.data.userId;
-            localStorage.setItem('guestToken', t);
-            localStorage.setItem('guestUser', JSON.stringify({ id: uid, nickname: null, type: 'guest' }));
-            setToken(t);
-            setUser({ id: uid, nickname: null, type: 'guest' });
-          }
-        } catch (e) {
-          console.error('Guest init failed', e);
-        }
-      })();
-    }
-  }, []);
-
-  useEffect(() => {
-    // Monkey-patch fetch to attach token header for convenience
-    const orig = window.fetch;
-    (window as any).fetch = async (input: any, init: any = {}) => {
-      init.headers = init.headers || {};
-      try {
-        const h = new Headers(init.headers as HeadersInit);
-        if (!h.get('Authorization') && !h.get('x-guest-token') && token) {
-          h.set('Authorization', `Bearer ${token}`);
-        }
-        init.headers = h;
-      } catch (e) {}
-      return orig(input, init);
-    };
-    return () => {
-      (window as any).fetch = orig;
-    };
-  }, [token]);
-
-  async function bindWeChat() {
-    try {
-      const res = await fetch('/api/auth/wechat_login');
-      const js = await res.json();
-      if (!js || !js.success || !js.data || !js.data.url) throw new Error('No wechat url');
-      const callbackUrl = js.data.url;
-      // Call callback directly (mock flow). In production, frontend should open the OAuth URL.
-      const cb = await fetch(callbackUrl);
-      const cbJson = await cb.json();
-      if (cbJson && cbJson.success && cbJson.data) {
-        const newToken = cbJson.data.token || cbJson.data.sessionId || cbJson.data.guestToken;
-        const newUserId = cbJson.data.userId;
-        if (newToken) {
-          localStorage.setItem('guestToken', newToken);
-          localStorage.setItem('guestUser', JSON.stringify({ id: newUserId, nickname: null, type: 'wechat' }));
-          setToken(newToken);
-          setUser({ id: newUserId, nickname: null, type: 'wechat' });
-        }
-      }
-    } catch (e) {
-      console.error('WeChat bind failed', e);
-    }
-  }
-
-  return (
-    <AuthContext.Provider value={{ user, token, bindWeChat }}>
-      {children}
-    </AuthContext.Provider>
-  );
+    const ctx = useContext(AuthContext);
+    if (!ctx) throw new Error("useAuth must be inside AuthProvider");
+    return ctx;
 }
