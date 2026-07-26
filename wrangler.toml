@@ -18,15 +18,18 @@ MAX_QUEUE_WORKERS = "4"
 binding = "DB"
 database_name = "ai-platform-db"
 
-# KV Namespaces
+# KV Namespaces — id restored from wrangler kv namespace list
 [[kv_namespaces]]
 binding = "USER_CACHE"
+id = "3370d3a1db49404aa2615c706a5e15eb"
 
 [[kv_namespaces]]
 binding = "RATE_LIMITS"
+id = "2c2c7dc47eb44448ba93c06f45d3f984"
 
 [[kv_namespaces]]
 binding = "FEATURE_FLAGS"
+id = "5c4baaf523b74520afb3c04c19d751a6"
 
 # R2 Bucket
 [[r2_buckets]]
