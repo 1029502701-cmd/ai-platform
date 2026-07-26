@@ -1,4 +1,4 @@
-﻿import type { PagesFunction } from "@cloudflare/workers-types";
+import type { PagesFunction } from "@cloudflare/workers-types";
 import { jsonResponse } from "../../_auth.ts";
 
 export const onRequestGet = async (context: Parameters<PagesFunction>[0]) => {

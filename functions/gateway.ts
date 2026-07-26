@@ -1,4 +1,4 @@
-﻿// API Gateway Worker — unified request router for /api/* routes
+// API Gateway Worker — unified request router for /api/* routes
 // Task-Platform-007: Production deployment integration
 export const onRequest = async (context: any) => {
   const { request } = context;
