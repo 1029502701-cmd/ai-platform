@@ -1,6 +1,5 @@
-import { readSessionId } from '../../../../shared/auth/cookies.ts';
+﻿import { readSessionId } from '../../../../shared/auth/cookies.ts';
 import { getSession, createSession } from '../../../../shared/auth/session.ts';
-import { storeFile } from '../../../../shared/services/storage.ts';
 import { updateUserProfile } from '../../../../shared/user/profile.ts';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -61,20 +60,32 @@ export const onRequestPost = async (context: any) => {
       return errorResponse('INVALID_FILE_TYPE', 'Unsupported file extension', 400);
     }
 
+    // Auth or guest
+    var session = await requireOrCreateGuest(context);
+    var userId = session?.user?.id || 'anonymous';
+
+    // R2 key: beauty/images/{userId}/{filename}
     var fileId = crypto.randomUUID ? crypto.randomUUID() : 'f_' + Date.now().toString(36);
-    var key = fileId + '.' + ext;
+    var key = 'beauty/images/' + userId + '/' + fileId + '.' + ext;
 
     var arrayBuffer = await file.arrayBuffer();
-    var result = await storeFile(context.env, 'beauty-images', key, arrayBuffer, contentType);
+
+    // Use ASSETS_BUCKET directly — no non-existent binding
+    var bucket = context.env?.ASSETS_BUCKET;
+    if (!bucket || typeof bucket.put !== 'function') {
+      return errorResponse('NO_R2_BUCKET', 'R2 bucket not configured', 500);
+    }
+    await bucket.put(key, arrayBuffer as any, { httpMetadata: { contentType: contentType || undefined } });
+
+    var imageUrl = '/api/apps/beauty/image?key=' + encodeURIComponent(key);
 
     try {
-      var session = await requireOrCreateGuest(context);
-      if (context.env?.DB && session?.user?.id) {
-        await updateUserProfile(context.env.DB, session.user.id, { imageUrl: result.url, lastAnalysisImage: result.url });
+      if (context.env?.DB && userId) {
+        await updateUserProfile(context.env.DB, userId, { imageUrl: imageUrl, lastAnalysisImage: imageUrl });
       }
     } catch (e) { console.warn('Failed to update user profile:', e); }
 
-    return successResponse(result.url, key);
+    return successResponse(imageUrl, key);
   } catch (e) {
     return errorResponse('UPLOAD_FAILED', (e as any)?.message || 'Upload failed', 500);
   }

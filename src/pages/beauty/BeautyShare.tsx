@@ -1,24 +1,27 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
+﻿import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from "react-router";
 import PluginBeautyReportView from '../../../plugins/beauty/frontend/BeautyReportView';
 import type { BeautyReport } from '../../../shared/types/beauty.types';
-import { analyzeBeauty } from '../../../shared/services/plugins/beauty.service';
 
 export default function BeautySharePage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [report, setReport] = useState<BeautyReport | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        // For public share we don't expose private user data. If we had stored reports we'd fetch them.
-        // Fallback: generate a mock report to display publicly so share link still shows a report.
-        const res = await analyzeBeauty({ userContext: { mock: true } });
-        setReport(res.report as BeautyReport);
-      } catch (e) {
-        console.warn('Failed to load shared report', e);
+        // Fetch the actual stored report via the share API endpoint
+        const res = await fetch(`/api/apps/beauty/report/${id}?share=1`);
+        if (!res.ok) throw new Error('Report not found or access denied');
+        const json: any = await res.json();
+        if (!json.success || !json.data?.report) throw new Error('Failed to load report data');
+        setReport(json.data.report as BeautyReport);
+      } catch (e: any) {
+        console.warn('[BeautyShare] Failed to load:', e.message);
+        setError(e.message || 'Failed to load shared report');
       } finally {
         setLoading(false);
       }
@@ -26,7 +29,15 @@ export default function BeautySharePage() {
   }, [id]);
 
   if (loading) return <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">加载中…</div>;
-  if (!report) return <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">无法加载报告</div>;
+  if (error) return (
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+      <div className="text-center">
+        <p className="text-red-500 mb-2">⚠️ {error}</p>
+        <button onClick={() => navigate('/beauty')} className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600">返回首页</button>
+      </div>
+    </div>
+  );
+  if (!report) return <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center"><p className="text-gray-500">无法加载报告</p></div>;
 
   return (
     <div>

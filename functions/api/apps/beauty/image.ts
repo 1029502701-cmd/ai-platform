@@ -1,6 +1,4 @@
-import { getFile } from '../../../../shared/services/storage.ts';
-
-export const onRequestGet = async (context: any) => {
+﻿export const onRequestGet = async (context: any) => {
   try {
     const url = new URL(context.request.url);
     const key = url.searchParams.get('key');
@@ -9,7 +7,13 @@ export const onRequestGet = async (context: any) => {
     // Sanitize key - only allow safe characters
     if (!/^[a-zA-Z0-9_\-./]+$/.test(key)) return new Response('Invalid key', { status: 400 });
 
-    const obj = await getFile(context.env, 'beauty-images', key);
+    // Use ASSETS_BUCKET directly — no non-existent beauty-images binding
+    var bucket = context.env?.ASSETS_BUCKET;
+    if (!bucket || typeof bucket.get !== 'function') {
+      return new Response('No R2 bucket available', { status: 500 });
+    }
+
+    var obj = await bucket.get(key);
     if (!obj) return new Response('Not found', { status: 404 });
 
     // When R2 returns a ReadableStream
@@ -21,7 +25,7 @@ export const onRequestGet = async (context: any) => {
     }
 
     // Local fallback - Buffer or Uint8Array
-    const data = obj.body instanceof Uint8Array || Buffer.isBuffer(obj.body) ? obj.body : Buffer.from(await obj.arrayBuffer());
+    const data = obj.body instanceof Uint8Array || (typeof Buffer !== 'undefined' && Buffer.isBuffer(obj.body)) ? obj.body : Buffer.from(await obj.arrayBuffer());
     const headers: Record<string, string> = {};
     headers['Content-Type'] = obj.httpMetadata?.contentType || 'application/octet-stream';
     return new Response(data, { status: 200, headers });

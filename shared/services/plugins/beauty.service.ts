@@ -1,197 +1,234 @@
-/** Beauty Plugin service — mock analysis logic */
+﻿/** Beauty Plugin service — real analysis pipeline via AI Core. */
 
+import { analyzeImage as analyzeFaceImage } from './face_analysis_engine';
+import { generateViaCore } from '../ai_core';
+import type { CoreRequest } from '../ai_core';
+import { calculateFaceShape } from './face_utils';
 import type {
   BeautyAnalysisRequest,
   BeautyReport,
-  FaceShapeAnalysis,
-  FeatureAnalysis,
-  FeatureDetail,
-  MakeupRecommendation,
-  InfluencerMatch,
-  ProductRecommendation,
 } from '../../types/beauty.types';
 
 
-// ── mock data pools ────────────────────────────────────────────────
+// ─── Constants ──────────────────────────────────────────────────────────────
 
-const FACE_SHAPES = ['oval', 'round', 'square', 'heart', 'long'];
-const MAKEUP_BASES = ['natural', 'glossy', 'matte', 'dewy'];
-const LIP_COLORS = ['coral', 'rose', 'nude', 'burgundy', 'orange-red'];
-const PLATFORMS = ['小红书', '抖音', '微博', 'Bilibili'];
+const MOCK_CONVERSATION = '对话建议';
+const MOCK_SKINCARE = '护肤建议';
+const MOCK_FIX = '遮瑕建议';
 
-function pickRandom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
 
-function makeFaceShapeAnalysis(): FaceShapeAnalysis {
-  const shape = pickRandom(FACE_SHAPES);
+// ─── Minimal fallback builder (only when AI Core unavailable) ───────────────
+
+function buildFallbackReport(
+  faceShapeName: string,
+  userContext?: any,
+): BeautyReport {
+  const reportId = 'rpt_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
   return {
-    shape,
-    confidence: +(0.75 + Math.random() * 0.22).toFixed(2),
-    faceWidth: +(130 + Math.random() * 30).toFixed(0),
-    faceLength: +(140 + Math.random() * 40).toFixed(0),
-    cheekboneWidth: +(110 + Math.random() * 30).toFixed(0),
-    jawWidth: +(85 + Math.random() * 30).toFixed(0),
-    foreheadWidth: +(90 + Math.random() * 30).toFixed(0),
-    proportions: {
-      upper: +(0.28 + Math.random() * 0.08).toFixed(2),
-      middle: +(0.33 + Math.random() * 0.08).toFixed(2),
-      lower: +(0.28 + Math.random() * 0.08).toFixed(2),
+    userId: userContext?.userProfile?.id || 'user_mock',
+    analysisId: reportId,
+    timestamp: new Date().toISOString(),
+    faceShape: {
+      shape: faceShapeName,
+      confidence: 0.5,
+      faceWidth: 0, faceLength: 0, cheekboneWidth: 0, jawWidth: 0, foreheadWidth: 0,
+      proportions: {},
+      canthalRatio: { innerCanthus: 0, eyeWidth: 0, outerCanthus: 0 },
+      recommendations: [`${MOCK_CONVERSATION}`, `${MOCK_SKINCARE}`, `${MOCK_FIX}`],
     },
-    canthalRatio: {
-      innerCanthus: +(0.2 + Math.random() * 0.15).toFixed(2),
-      eyeWidth: +(0.38 + Math.random() * 0.1).toFixed(2),
-      outerCanthus: +(0.2 + Math.random() * 0.15).toFixed(2),
+    features: {
+      eyes: { name: '眼', score: 0, description: '', styleRecommendations: [] },
+      eyebrows: { name: '眉', score: 0, description: '', styleRecommendations: [] },
+      nose: { name: '鼻', score: 0, description: '', styleRecommendations: [] },
+      lips: { name: '唇', score: 0, description: '', styleRecommendations: [] },
+      chin: { name: '下巴', score: 0, description: '', styleRecommendations: [] },
+      overallHarmony: 0,
+      suggestions: [],
     },
-    recommendations: [
-      `适合的发型建议突出 ${shape === 'oval' ? '柔和轮廓' : shape === 'round' ? '纵向线条' : shape === 'square' ? '额头修饰' : shape === 'heart' ? '下颌丰满' : '缩短脸长'}`,
-      '建议定期做面部瑜伽放松肌肉',
-      '注意防晒防止光老化',
-    ],
+    makeup: {
+      base: '', eyeMakeup: '', lipColor: '', blushStyle: '',
+      highlightAreas: [], avoidAreas: [],
+      reason: `AI Core不可用，此为${faceShapeName}脸型的降级建议`,
+    },
+    influencers: [],
+    products: [],
+    faceAnalysis: null,
   };
 }
 
-function makeFeatureAnalysis(): FeatureAnalysis {
-  const makeFeature = (name: string, defaults: Partial<FeatureDetail>): FeatureDetail => ({
-    name,
-    score: +(55 + Math.random() * 40).toFixed(0),
-    description: `${name}区域分析：当前状态良好，建议关注${defaults.description || '细节优化'}。`,
-    styleRecommendations: defaults.styleRecommendations || ['保持自然风格'],
-  });
 
-  return {
-    eyes: makeFeature('眼', {
-      description: '眼部轮廓对称性',
-      styleRecommendations: ['圆眼适合下垂妆效', '杏眼适合自然眼影', '丹凤眼适合上扬眼线'],
-    }),
-    eyebrows: makeFeature('眉', {
-      description: '眉毛毛流与形态',
-      styleRecommendations: ['根据脸型选择眉型', '野生眉适合小脸', '平眉显年轻'],
-    }),
-    nose: makeFeature('鼻', {
-      description: '鼻梁高度与鼻尖形态',
-      styleRecommendations: ['侧影修容增加立体感', '高光提亮鼻尖'],
-    }),
-    lips: makeFeature('唇', {
-      description: '嘴唇厚度与唇形轮廓',
-      styleRecommendations: ['薄唇适合渐变咬唇', '厚唇适合哑光纯色'],
-    }),
-    chin: makeFeature('下巴', {
-      description: '下巴翘度与宽度',
-      styleRecommendations: ['尖下巴适合V脸修容'],
-    }),
-    overallHarmony: +(60 + Math.random() * 35).toFixed(0),
-    suggestions: [
-      '建议通过妆容调整比例协调性',
-      '多尝试不同眉形找到最适合的一款',
-      '护肤重点放在T区和双颊交界处',
-    ],
-  };
-}
-
-function makeMakeupRecommendation(): MakeupRecommendation {
-  return {
-    base: pickRandom(MAKEUP_BASES) + '底妆',
-    eyeMakeup: pickRandom(['大地色渐变', '粉色系', '冷调烟熏', '橘棕色调']) + '眼影',
-    lipColor: pickRandom(LIP_COLORS) + '口红',
-    blushStyle: pickRandom(['苹果肌打圈', '斜向上扫刷', 'C区连接颧骨']),
-    highlightAreas: ['鼻梁', '颧骨高点', '眉骨'],
-    avoidAreas: ['鼻翼两侧', '下颌角'],
-    reason: '根据脸型和五官特征匹配的风格建议',
-  };
-}
-
-function makeInfluencers(): InfluencerMatch[] {
-  return [
-    {
-      id: 'inf_001',
-      name: pickRandom(['小美美妆课堂', '造型师Alice', '日常穿搭日记', '美妆达人Lily']),
-      platform: pickRandom(PLATFORMS),
-      followers: pickRandom(['10万+', '50万+', '200万+', '500万+']),
-      styleMatchScore: +(0.8 + Math.random() * 0.18).toFixed(2),
-      imageUrl: '',
-      reasons: ['风格匹配度高', '内容专业度好', '粉丝互动积极'],
-    },
-    {
-      id: 'inf_002',
-      name: pickRandom(['妆容教程君', '时尚前线', '美学研究所', '护肤百科']),
-      platform: pickRandom(PLATFORMS),
-      followers: pickRandom(['5万+', '30万+', '100万+']),
-      styleMatchScore: +(0.7 + Math.random() * 0.25).toFixed(2),
-      imageUrl: '',
-      reasons: ['内容更新频繁', '受众画像相似'],
-    },
-  ];
-}
-
-function makeProducts(): ProductRecommendation[] {
-  const categories = ['粉底液', '散粉', '眼影盘', '口红', '腮红', '修容棒', '眉笔'];
-  const brands = ['雅诗兰黛', '兰蔻', 'YSL', 'Mac', 'NARS', '完美日记', '花西子', '彩棠'];
-  const results: ProductRecommendation[] = [];
-  for (let i = 0; i < 5; i++) {
-    results.push({
-      id: `prod_${String(i + 1).padStart(3, '0')}`,
-      name: `${pickRandom(brands)} ${pickRandom(categories)}`,
-      category: pickRandom(categories),
-      brand: pickRandom(brands),
-      priceRange: pickRandom(['¥100-300', '¥300-600', '¥600-1000', '¥100-200']),
-      rating: +(3.5 + Math.random() * 1.5).toFixed(1),
-      matchReason: `适配 ${['肤质', '肤色', '风格'][(i % 3)]}的推荐产品`,
-      imageUrl: '',
-    });
-  }
-  return results;
-}
-
-// ── main analysis function ─────────────────────────────────────────
+// ─── Main entry ─────────────────────────────────────────────────────────────
 
 export async function analyzeBeauty(
   request: BeautyAnalysisRequest,
+  env?: any,
 ): Promise<{ reportId: string; report: BeautyReport }> {
-  const reportId = 'rpt_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+  const imageUrl = request.imageUrl;
 
-  // Validate image URL if provided (R2/internal route or external)
-  if (request.imageUrl) {
+  // Validate image
+  if (imageUrl) {
     try {
-      const res = await fetch(request.imageUrl);
+      const res = await fetch(imageUrl);
       if (!res.ok) console.warn('[Beauty] Image unavailable:', res.status);
     } catch (e) {
       console.warn('[Beauty] Image error:', (e as any)?.message || e);
     }
   }
 
-  return { reportId, report: buildReport(request.userContext) as BeautyReport };
-}
-
-function buildReport(userContext: any | undefined) {
-  const faceShapeAnalysis = makeFaceShapeAnalysis();
-  const featureAnalysis = makeFeatureAnalysis();
-  const makeup = makeMakeupRecommendation();
-  const influencers = makeInfluencers();
-  const products = makeProducts();
-  const reportObj = {
-    userId: userContext?.userProfile?.id || 'user_mock',
-    timestamp: new Date().toISOString(),
-    faceShape: faceShapeAnalysis,
-    features: featureAnalysis,
-    makeup,
-    influencers,
-    products,
-  };
-
-  // Apply user profile bias
-  if (userContext?.userProfile) {
-    try {
-      const agentModule = require('./beauty_ai_agent');
-      if (agentModule && agentModule.applyUserProfileBias) {
-        const styleResult = agentModule.applyUserProfileBias(reportObj, userContext.userProfile);
-        if (styleResult) {
-          reportObj.makeup = Object.assign({}, makeup, { reason: styleResult });
-        }
-      }
-    } catch (e) {}
+  // Phase 1: Face landmark detection
+  let faceResult: any = null;
+  try {
+    if (imageUrl) {
+      faceResult = await analyzeFaceImage(imageUrl, request.userContext);
+    }
+  } catch (e: any) {
+    console.warn('[Beauty] Face analysis failed:', e.message);
   }
 
-  return reportObj;
+  // Extract metrics from face result
+  const metrics = faceResult?.metrics || null;
+  const faceShapeName = metrics ? calculateFaceShape(metrics) : 'oval';
+
+  // Phase 2: Call AI Core to generate full beauty report from face data
+  if (env && faceResult) {
+    const aiReport = await callAIForReport(env, {
+      requestId: 'beauty_' + Date.now(),
+      userId: request.userContext?.userProfile?.id,
+      imageUrl,
+      faceShape: faceShapeName,
+      eyeShape: faceResult.eyeShape,
+      metrics,
+      userContext: request.userContext,
+    });
+    if (aiReport.reportId && aiReport.report) {
+      return aiReport;
+    }
+  }
+
+  // Phase 3: Fallback when no image, no face data, or AI Core unavailable
+  return {
+    reportId: 'rpt_fallback_' + Date.now().toString(36),
+    report: buildFallbackReport(faceShapeName, request.userContext),
+  };
+}
+
+
+// ─── AI Core integration ────────────────────────────────────────────────────
+
+interface AICoreInput {
+  requestId: string;
+  userId?: string;
+  imageUrl: string | undefined;
+  faceShape: string;
+  eyeShape: string;
+  metrics: any;
+  userContext?: any;
+}
+
+async function callAIForReport(
+  env: any,
+  input: AICoreInput,
+): Promise<{ reportId: string; report: BeautyReport }> {
+  try {
+    if (!env?.DB) { throw new Error('DB not configured'); }
+
+    const scenarioRow = await env.DB.prepare(
+      'SELECT default_model_id FROM ai_scenarios WHERE scenario_key = ?',
+    ).get('beauty-analysis');
+    const modelId = scenarioRow?.default_model_id || undefined;
+
+    const coreReq: CoreRequest = {
+      requestId: input.requestId,
+      userId: input.userId,
+      scenario: 'beauty-analysis',
+      aiRequest: {
+        model: modelId,
+        messages: [
+          {
+            role: 'system',
+            content: [
+              'You are a professional beauty consultant. 请用中文回答所有报告内容。. Generate a personalized beauty analysis report based on facial geometry data.',
+              'Return ONLY valid JSON matching this schema:',
+              '{"reportId":"string","timestamp":"ISO8601","faceShape":{"shape":"oval|round|square|heart|long","confidence":0-1,"recommendations":["array"]},"features":{"eyes":{"name":"string","score":0-100,"description":"string","styleRecommendations":["array"]},"eyebrows":{...},"nose":{...},"lips":{...},"chin":{...},"overallHarmony":0-100,"suggestions":["array"]},"makeup":{"base":"string","eyeMakeup":"string","lipColor":"string","blushStyle":"string","highlightAreas":["array"],"avoidAreas":["array"],"reason":"string"},"influencers":[{"id":"string","name":"string","platform":"string","followers":"string","styleMatchScore":0-1,"reasons":["array"]}]},"products":[{"id":"string","name":"string","category":"string","brand":"string","priceRange":"string","rating":0-5,"matchReason":"string"}]}',
+              'All fields must be personalized based on actual facial geometry — do NOT use generic templates.'
+            ].join('\n'),
+          },
+          {
+            role: 'user',
+            content: [
+              `Face shape: ${input.faceShape}`,
+              `Eye shape: ${input.eyeShape}`,
+              `Metrics: faceWidth=${input.metrics?.faceWidth}, faceHeight=${input.metrics?.faceHeight}, faceRatio=${input.metrics?.faceRatio}, jawWidth=${input.metrics?.jawWidth}, chinLength=${input.metrics?.chinLength}`,
+              `Forehead width: ${input.metrics?.foreheadWidth}`,
+              `Cheekbone width: ${input.metrics?.cheekboneWidth}`,
+              `Eye distance: ${input.metrics?.eyeDistance}`,
+              `Nose width: ${input.metrics?.noseWidth}, nose length: ${input.metrics?.noseLength}`,
+              `Lip width: ${input.metrics?.lipWidth}, lip height: ${input.metrics?.lipHeight}`,
+              input.imageUrl ? `Image: ${input.imageUrl}` : '',
+              input.userContext?.userProfile?.preferred_style ? `Preferred style: ${input.userContext.userProfile.preferred_style}` : ''
+            ].filter(Boolean).join('\n')
+          }
+        ]
+      }
+    };
+
+    const response = await generateViaCore(env, coreReq);
+    if (!response.ok || !response.data?.content) {
+      console.warn('[Beauty] AI Core report generation failed:', response.error);
+      throw new Error(response.error || 'No AI response');
+    }
+
+    const parsed = parseAIReport(response.data.content, input);
+    if (!parsed || !parsed.reportId) {
+      console.warn('[Beauty] AI Core returned invalid report format');
+      throw new Error('Invalid report format from AI');
+    }
+
+    console.info(`[Beauty] AI Core report generated: ${parsed.reportId}`);
+    return parsed;
+  } catch (e: any) {
+    console.warn('[Beauty] callAIForReport failed:', e.message);
+    return {
+      reportId: 'rpt_fallback_' + Date.now().toString(36),
+      report: buildFallbackReport(input.faceShape, input.userContext),
+    };
+  }
+}
+
+
+function parseAIReport(rawContent: string, input: AICoreInput): { reportId: string; report: BeautyReport } {
+  // Try to extract JSON from markdown code blocks first
+  let jsonStr = rawContent;
+  const markdownMatch = rawContent.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (markdownMatch) {
+    jsonStr = markdownMatch[1].trim();
+  }
+
+  // Find the first { and last } to handle trailing text
+  const firstBrace = jsonStr.indexOf('{');
+  const lastBrace = jsonStr.lastIndexOf('}');
+  if (firstBrace === -1 || lastBrace === -1) {
+    throw new Error('No JSON object found in AI response');
+  }
+  jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
+
+  const data = JSON.parse(jsonStr);
+
+  // Build a valid BeautyReport with safety defaults
+  const reportId = data.reportId || ('rpt_ai_' + Date.now().toString(36));
+  return {
+    reportId,
+    report: {
+      userId: data.userId || input.userContext?.userProfile?.id || 'user_mock',
+      analysisId: data.analysisId || reportId,
+      timestamp: data.timestamp || new Date().toISOString(),
+      faceShape: data.faceShape || null,
+      features: data.features || null,
+      makeup: data.makeup || null,
+      influencers: Array.isArray(data.influencers) ? data.influencers : [],
+      products: Array.isArray(data.products) ? data.products : [],
+      faceAnalysis: input.metrics ? { ...input.metrics, faceShape: input.faceShape, eyeShape: input.eyeShape } : null,
+    },
+  };
 }
 
