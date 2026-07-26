@@ -7,6 +7,7 @@ import type {
   BeautyReport,
   FaceMetricsRaw,
 } from '../../types/beauty.types';
+import { matchProducts as mpFn, matchBloggers as mbFn } from './beauty_product.service';
 
 
 // ─── Constants (fallback only) ──────────────────────────────────────────────
@@ -156,6 +157,22 @@ async function callAIForReport(
 
     const parsed = parseAIReport(response.data.content);
     if (!parsed || !parsed.reportId) {
+
+    // Augment with DB-backed products/bloggers
+    try {
+      const fsShape = parsed.report?.faceShape?.shape || undefined;
+      const makeupBase = parsed.report?.makeup?.base || undefined;
+      const promiseArr = [
+        mpFn(env, { faceShape: fsShape, makeupStyle: makeupBase, limit: 8 }),
+        mbFn(env, { faceShape: fsShape, makeupStyle: makeupBase, limit: 6 }),
+      ];
+      const resArr = await Promise.all(promiseArr);
+      const products = resArr[0];
+      const influencers = resArr[1];
+      parsed.report.products = products.map(function(p) { return { id: p.id, brand: p.brand, name: p.name, category: p.category, image_url: p.image_url, affiliate_url: p.affiliate_url, price_range: p.price_range, rating: p.rating, matchReason: p.matchReason }; });
+      parsed.report.influencers = influencers.map(function(b) { return { id: b.id, name: b.name, platform: b.platform, followers: String(Math.round(b.followers)), avatar_url: b.avatar_url, profile_url: b.profile_url, styleMatchScore: b.styleMatchScore, reasons: b.reasons }; });
+    } catch (e) { console.warn("[Beauty] DB matching failed:", e); }
+
       console.warn('[Beauty] AI Core returned invalid report format');
       throw new Error('Invalid report format from AI');
     }
@@ -204,3 +221,4 @@ function parseAIReport(rawContent: string): { reportId: string; report: BeautyRe
     },
   };
 }
+

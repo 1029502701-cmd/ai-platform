@@ -12,6 +12,7 @@ const navItems: NavItem[] = [
     { key: "/admin/logs", label: "Logs", icon: "\u{1F4D1}" },
     { key: "/admin/developers", label: "Developers", icon: "\u{1F5A5}" },
     { key: "/admin/marketplace", label: "Marketplace", icon: "\u{1F3EC}" },
+    { key: "/admin/beauty", label: "Beauty Admin", icon: "\u{1F484}" },
     { key: "/monitor", label: "System Monitor", icon: "\u{1F50D}" },
     { key: "/admin/settings", label: "Settings", icon: "\u2699\uFE0F" },
 ];

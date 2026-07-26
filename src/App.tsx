@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, Outlet } from "react-router";
+﻿import { Navigate, Route, Routes, Outlet } from "react-router";
 import Layout from "./components/layout/Layout";
 import AdminLayout from "./pages/admin/Layout";
 import AdminDashboardPage from "./pages/admin/Dashboard";
@@ -16,6 +16,7 @@ import MonitorPage from "./pages/Monitor";
 declare const AccountPage: any;import DevelopersPage from "./pages/Developers";
 import OpenApiPlayground from "./pages/OpenApiPlayground";
 import MarketplacePage from "./pages/Marketplace";
+import BeautyAdminPage from "./pages/admin/BeautyAdmin";
 import IntegrationsPage from "./pages/Integrations";
 
 export default function App() {
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="logs" element={<div className="p-6"><h1 className="text-xl font-bold">Log Center</h1><p className="text-gray-500 mt-2">API: GET /api/admin/logs</p></div>} />
           <Route path="settings" element={<div className="p-6"><h1 className="text-xl font-bold">System Settings</h1><p className="text-gray-500 mt-2">API: GET/PATCH /api/admin/settings</p></div>} />
           <Route path="developers" element={<div className="p-6"><h1 className="text-xl font-bold">Developer Management</h1><p className="text-gray-500 mt-2">API: GET /api/admin/developers</p></div>} />
+          <Route path="beauty" element={<BeautyAdminPage /> } />
           <Route path="marketplace" element={<div className="p-6"><h1 className="text-xl font-bold">Marketplace Management</h1><p className="text-gray-500 mt-2">API: GET /api/admin/marketplace/apps</p></div>} />
         </Route>
         <Route path="/beauty" element={<BeautyHomePage />} />
@@ -54,3 +56,4 @@ export default function App() {
     </Layout>
   );
 }
+
