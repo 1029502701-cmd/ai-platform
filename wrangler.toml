@@ -2,9 +2,7 @@ name = "ai-platform"
 compatibility_date = "2026-07-25"
 compatibility_flags = ["nodejs_compat"]
 
-# NOTE: pages_build_output_dir is set via CF Pages Dashboard instead of here.
-# GitHub Connect needs explicit build_command set in Dashboard.
-# pages_build_output_dir = "./dist"
+pages_build_output_dir = "./dist"
 
 [vars]
 NODE_ENV = "production"
@@ -15,7 +13,7 @@ TASK_EXECUTION_TIMEOUT_MS = "300000"
 STALE_RUNNING_MS = "7200000"
 MAX_QUEUE_WORKERS = "4"
 
-# D1 Database — GitHub Connect reads binding name from here, uses Dashboard value for ID
+# D1 Database
 [[d1_databases]]
 binding = "DB"
 database_name = "ai-platform-db"

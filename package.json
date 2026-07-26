@@ -5,10 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 5173",
-    "build": "vite build",
+    "build": "npx vite build",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.functions.json",
-    "test": "npm run test:unit",
-    "cf-build": "npm ci && npm run build"
+    "test": "npm run test:unit"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.0",
