@@ -17,8 +17,9 @@ MAX_QUEUE_WORKERS = "4"
 [[d1_databases]]
 binding = "DB"
 database_name = "ai-platform-db"
+database_id = "23b19cc8-2a4d-4c4a-a9a7-a30ec61820c9"
 
-# KV Namespaces — id restored from wrangler kv namespace list
+# KV Namespaces
 [[kv_namespaces]]
 binding = "USER_CACHE"
 id = "3370d3a1db49404aa2615c706a5e15eb"
@@ -36,7 +37,7 @@ id = "5c4baaf523b74520afb3c04c19d751a6"
 binding = "ASSETS_BUCKET"
 bucket_name = "ai-platform-assets"
 
-# Queues
+# Queues (producer bindings — not needed by Pages deploy but kept for completeness)
 [[queues.producers]]
 queue = "ai-tasks"
 binding = "AI_TASK_QUEUE"
