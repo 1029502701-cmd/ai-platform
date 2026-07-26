@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 interface MonitorStats {
     system_health: string;
@@ -17,7 +17,7 @@ export default function MonitorPage() {
     const loadStats = async () => {
         try {
             const res = await fetch("/api/admin/monitor/overview");
-            const json = await res.json();; const data = json as any;
+            const json: any = await res.json();; const data = json as any;
             if (json.success) {
                 setStats(json.data);
                 setLastUpdate(new Date().toLocaleTimeString("zh-CN"));

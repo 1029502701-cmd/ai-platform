@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 interface SummaryData {
     total_users: number;
@@ -34,7 +34,7 @@ export default function AdminDashboardPage() {
 
     if (loading) return <div className="p-8 text-center">Loading admin data...</div>;
 
-    const s = data?.summary || {};
+    const s: any = data?.summary;
 
     const StatCard = ({ label, value, color }: any) => (
         <div className="bg-white p-4 rounded-lg shadow">

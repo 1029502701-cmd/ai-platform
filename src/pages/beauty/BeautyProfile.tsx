@@ -9,12 +9,12 @@ export default function BeautyProfilePage() {
     (async () => {
       try {
         const p = await fetch('/api/apps/beauty/profile');
-        const pj = await p.json();
+        const pj: any = await p.json();
         if (pj && pj.success) setProfile(pj.data);
       } catch (e) {}
       try {
         const h = await fetch('/api/apps/beauty/history');
-        const hj = await h.json();
+        const hj: any = await h.json();
         if (hj && hj.success) setHistory(hj.data || []);
       } catch (e) {}
       setLoading(false);

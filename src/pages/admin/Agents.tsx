@@ -22,7 +22,7 @@ export const AgentsPage: React.FC = () => {
   async function loadAgents() {
     try {
       const res = await fetch("/api/admin/agents");
-      const data = await res.json();
+      const data: any = await res.json();
       setAgents(data.agents || []);
     } catch (e: any) { setError(e.message); } finally { setLoading(false); }
   }

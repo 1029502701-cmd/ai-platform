@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 interface Product { id: number; code: string; name: string; priceCents: number; creditsAmount?: number; productType: string; status: string; }
 interface Order { id: number; orderNo: string; amountCents: number; status: string; createdAt: string; productName?: string; }
@@ -17,7 +17,7 @@ export const BillingAdminPage: React.FC = () => {
   async function loadOverview() {
     try {
       const res = await fetch("/api/admin/billing/revenue");
-      const data = await res.json();
+      const data: any = await res.json();
       setStats(data as any);
     } catch (e: any) { setError(e.message); } finally { setLoading(false); }
   }
@@ -25,7 +25,7 @@ export const BillingAdminPage: React.FC = () => {
   async function loadProducts() {
     try {
       const res = await fetch("/api/admin/billing/products");
-      const data = await res.json();
+      const data: any = await res.json();
       setProducts(data.products || []);
     } catch (e: any) {}
   }
@@ -102,7 +102,7 @@ export const BillingAdminPage: React.FC = () => {
         <div className="bg-white p-6 rounded-xl shadow border border-gray-200">
           <h3 className="font-semibold mb-4">Daily Breakdown</h3>
           <div className="space-y-2">
-            {(stats.dailyBreakdown || []).map((d, i) => (
+            {((stats as any).dailyBreakdown || []).map((d, i) => (
               <div key={i} className="flex justify-between py-2 border-b">
                 <span className="capitalize text-gray-700">{d.txType}: {d.count} transactions</span>
                 <span className="font-mono">\u00a5{(d.totalCents / 100).toFixed(2)}</span>

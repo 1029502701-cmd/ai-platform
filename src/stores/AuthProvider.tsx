@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 
 export interface GuestToken {
     userId: string;
@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const loginAsGuest = async () => {
         try {
             const res = await fetch("/api/auth/guest", { method: "POST" });
-            const data = await res.json();
+            const data = await res.json() as any;
             if (data.success && data.data) {
                 setState(prev => ({ ...prev, guestToken: data.data, user: { ...data.data, nickname: "Guest", avatar: null, type: "guest", role: "user", status: "active", planName: "free", created_at: new Date().toISOString(), last_login_at: null } }));
             }
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const refreshProfile = async () => {
         try {
             const res = await fetch("/api/user/profile");
-            const data = await res.json();
+            const data = await res.json() as any;
             if (data.success && data.data) {
                 setState(prev => ({ ...prev, user: data.data.profile, error: null }));
             }
@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updates),
             });
-            const data = await res.json();
+            const data = await res.json() as any;
             return data.success;
         } catch {
             return false;

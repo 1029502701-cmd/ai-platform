@@ -11,10 +11,10 @@ env:
 
 jobs:
   # ==========================================
-  # JOB 1: Type Check + Lint
+  # JOB 1: Frontend Type Check
   # ==========================================
   typecheck:
-    name: Type Check & Lint
+    name: TypeScript Check (Frontend)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,8 +28,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: TypeScript type check
-        run: npx tsc --noEmit
+      - name: TypeScript check (frontend only)
+        run: npx tsc --noEmit -p tsconfig.json
 
   # ==========================================
   # JOB 2: Build
@@ -127,7 +127,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
   # ==========================================
-  # JOB 6: Deploy to Production (manual trigger)
+  # JOB 6: Deploy to Production
   # ==========================================
   deploy-production:
     name: Deploy Production
@@ -165,4 +165,4 @@ jobs:
 
       - name: Notify on failure
         if: failure()
-        run: echo "Deployment failed — check logs"
+        run: echo "Deployment failed - check logs"

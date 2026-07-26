@@ -1,4 +1,4 @@
-﻿import { useState, useRef, type ChangeEvent, useEffect } from "react";
+import { useState, useRef, type ChangeEvent, useEffect } from "react";
 import { useNavigate } from "react-router";
 import type { BeautyReport } from "../../../shared/types/beauty.types";
 
@@ -28,7 +28,7 @@ export default function BeautyHomePage() {
             body: JSON.stringify({ imageUrl: uploadedImageUrl }),
           });
 
-          const result = await response.json();
+          const result: any = await response.json();
 
           if (!result.success || !result.data) {
             throw new Error(result.error?.message || "分析失败");
