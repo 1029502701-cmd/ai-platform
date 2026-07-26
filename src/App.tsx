@@ -12,8 +12,10 @@ import PluginBeautyReportView from "../plugins/beauty/frontend/BeautyReportView"
 import BeautySharePage from "./pages/beauty/BeautyShare";
 import BeautyProfilePage from "./pages/beauty/BeautyProfile";
 import MonitorPage from "./pages/Monitor";
-// @ts-ignoreimport AccountPage from "./pages/Account";
-declare const AccountPage: any;import DevelopersPage from "./pages/Developers";
+// @ts-ignore
+import AccountPage from "./pages/Account";
+declare const AccountPage: any;
+import DevelopersPage from "./pages/Developers";
 import OpenApiPlayground from "./pages/OpenApiPlayground";
 import MarketplacePage from "./pages/Marketplace";
 import BeautyAdminPage from "./pages/admin/BeautyAdmin";
