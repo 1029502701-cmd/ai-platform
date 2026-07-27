@@ -1,13 +1,23 @@
-import type { PagesFunction } from "@cloudflare/workers-types";
-import { jsonResponse } from "../../_auth.ts";
-
-export const onRequestGet = async (context: Parameters<PagesFunction>[0]) => {
+// @ts-ignore
+export const onRequestGet = async (context) => {
+  const env = context.env;
   try {
-    const db = (context.env as any)?.DB;
+    const db = env.DB;
     let ready = false;
-    if (db?.prepare) { await db.prepare("SELECT 1").first(); ready = true; }
-    return jsonResponse({ status: ready ? 'ready' : 'not_ready', dbConnected: ready }, ready ? 200 : 503);
+    if (db?.prepare) { 
+      try { 
+        await db.prepare('SELECT 1').first(); 
+        ready = true; 
+      } catch {} 
+    }
+    return new Response(JSON.stringify({ status: ready ? 'ready' : 'not_ready', dbConnected: ready }), {
+      status: ready ? 200 : 503,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch {
-    return jsonResponse({ status: 'not_ready', dbConnected: false }, 503);
+    return new Response(JSON.stringify({ status: 'not_ready', dbConnected: false }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };
