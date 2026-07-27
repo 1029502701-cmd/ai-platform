@@ -12,7 +12,7 @@ export const onRequestGet = async (context: Parameters<PagesFunction>[0]) => {
     const offset = (page - 1) * limit;
     const q = url.searchParams.get("q") || "";
     try {
-        let where = q ? "WHERE nickname LIKE ? OR id LIKE ?" : "";
+        const where = q ? "WHERE nickname LIKE ? OR id LIKE ?" : "";
         const params: any[] = q ? [`%${q}%`, `%${q}%`] : [];
         const rows: any[] = await db.prepare(
             `SELECT u.id, u.nickname, u.type, u.status, u.role, u.created_at, u.last_login, COUNT(at.id) as usage_count FROM users u LEFT JOIN ai_tasks at ON at.created_by = u.id ${where} GROUP BY u.id ORDER BY u.created_at DESC LIMIT ? OFFSET ?`

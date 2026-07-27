@@ -23,9 +23,7 @@ export async function loadRegistryFromDB(env?: any): Promise<void> {
     const db = env?.DB;
     if (!db || !db.prepare) return;
 
-    const res = await db.prepare(
-      'SELECT model_id, provider, provider_model_name, default_params, priority, region_whitelist as regionWhitelist, status, display_name as displayName, context_limit as contextLimit, cost_config as costConfig FROM ai_models WHERE status = ''active'''
-    ).all();
+    const res = await db.prepare(`SELECT model_id, provider, provider_model_name, default_params, priority, region_whitelist as regionWhitelist, status, display_name as displayName, context_limit as contextLimit, cost_config as costConfig FROM ai_models WHERE status = 'active'`).all();
 
     if (res && res.results) {
       for (const row of res.results) {

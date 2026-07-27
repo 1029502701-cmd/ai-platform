@@ -28,7 +28,7 @@ export abstract class BaseProvider {
   // Chat generation (message history -> response)
   async generateChat(req: ChatGenerationRequest): Promise<ChatGenerationResponse> {
     // Default: fallback to text generation with prompt
-    const prompt = req.messages.map(m => ${m.role}: ).join('\n');
+    const prompt = req.messages.map(m => `${m.role}:`).join('\n');
     const textReq: TextGenerationRequest = {
       prompt,
       maxTokens: req.maxTokens,

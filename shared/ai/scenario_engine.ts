@@ -10,7 +10,7 @@ const DEFAULT_SCENARIOS: Record<string, any> = {
     code:{key:"code",name:"AI Code Assistant",defaultModelId:"claude-opus",temperature:0.3,maxTokens:4096,supportedModels:["claude-opus","claude-sonnet"]},
 };
 
-let cachedScenarios: Record<string, any> = {};
+const cachedScenarios: Record<string, any> = {};
 let dbLoaded = false;
 
 export async function loadScenariosFromDB(env: any): Promise<Record<string, any>> {

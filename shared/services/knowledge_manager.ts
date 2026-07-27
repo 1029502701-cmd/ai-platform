@@ -90,7 +90,7 @@ export async function addDocumentInDB(env: any, payload: { baseKey: string; doc_
 async function chunkAndStore(db: any, docId: number, content: string) {
   // split by double newline or sentences, aim for ~700 char chunks
   const paragraphs = content.split(/\n\n+/);
-  let chunks: string[] = [];
+  const chunks: string[] = [];
   for (const p of paragraphs) {
     if (p.length <= 800) chunks.push(p.trim());
     else {
@@ -141,7 +141,7 @@ export async function assembleContext(env: any, params: { query: string; baseKey
 
   const results = await searchKnowledge(env, { query: params.query, baseKey: params.baseKey, topK: params.topK });
   const charLimit = params.charLimit || 2000;
-  let contextParts: string[] = [];
+  const contextParts: string[] = [];
   let len = 0;
   for (const r of results) {
     const text = String(r.excerpt || r.content || '');

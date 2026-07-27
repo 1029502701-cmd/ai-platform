@@ -32,7 +32,7 @@ export class DeepSeekProvider extends BaseProvider {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: Bearer ,
+          'Authorization': `Bearer ${this.getApiKey()}`,
         },
         body: JSON.stringify(body),
       },
@@ -40,22 +40,22 @@ export class DeepSeekProvider extends BaseProvider {
       1
     );
 
-    const data = await res.json();
-    const choices = (data.choices || []).map((c: any, i: number) => ({
+    const respData = await res.json() as any;
+    const choices = (respData.choices || []).map((c: any, i: number) => ({
       text: c.message?.content ?? '',
       index: i,
     }));
-    const usage = data.usage
-      ? { promptTokens: data.usage.prompt_tokens, completionTokens: data.usage.completion_tokens, totalTokens: data.usage.total_tokens }
+    const usage = respData.usage
+      ? { promptTokens: respData.usage.prompt_tokens, completionTokens: respData.usage.completion_tokens, totalTokens: respData.usage.total_tokens }
       : undefined;
 
     return {
-      id: data.id || '',
-      model: data.model || model,
+      id: respData.id || '',
+      model: respData.model || model,
       provider: this.id,
       choices,
       usage,
-      raw: data,
+      raw: respData,
     };
   }
 

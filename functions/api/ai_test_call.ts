@@ -1,13 +1,14 @@
 import { generateText, registerProvider } from '../../shared/services/ai_provider_service.ts';
 import { seedExample } from '../../shared/services/ai_provider_registry.ts';
-import { MockProvider } from '../../shared/services/ai_provider_adapters_mock.ts';
+import { MockAdapter } from '../../shared/services/ai_provider_adapters_mock.ts';
 
 export const onRequestGet = async (context: any) => {
   const { request } = context;
   await seedExample();
   // register mock provider instance
   // register mock provider
-  registerProvider('mock', MockProvider);
+  const mockP = new MockAdapter(context.env);
+  registerProvider('mock', mockP);
   // if OPENAI adapter exists, import and register it (dynamic import to avoid bundling/runtime issues)
   try {
     const mod = await import('../../shared/services/ai_provider_adapters_openai');

@@ -1,6 +1,6 @@
 import { readSessionId } from '../../../../shared/auth/cookies.ts';
 import { getSession } from '../../../../shared/auth/session.ts';
-import { BeautyRepository } from '../../../../database/beauty_repository';
+import { BeautyRepository } from "../../../../database/beauty_repository";
 
 export const onRequestGet = async (context: any) => {
   const { request, env } = context;

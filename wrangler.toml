@@ -4,8 +4,10 @@ compatibility_flags = ["nodejs_compat"]
 
 pages_build_output_dir = "./dist"
 
-[vars]
+[env.production]
 NODE_ENV = "production"
+
+[env.production.vars]
 API_VERSION = "v1"
 DEFAULT_AI_PROVIDER = "openai"
 FALLBACK_AI_PROVIDERS = "anthropic,gemini,deepseek"
@@ -13,31 +15,27 @@ TASK_EXECUTION_TIMEOUT_MS = "300000"
 STALE_RUNNING_MS = "7200000"
 MAX_QUEUE_WORKERS = "4"
 
-# D1 Database
-[[d1_databases]]
+[[env.production.d1_databases]]
 binding = "DB"
 database_name = "ai-platform-db"
 database_id = "23b19cc8-2a4d-4c4a-a9a7-a30ec61820c9"
 
-# KV Namespaces
-[[kv_namespaces]]
+[[env.production.kv_namespaces]]
 binding = "USER_CACHE"
 id = "3370d3a1db49404aa2615c706a5e15eb"
 
-[[kv_namespaces]]
+[[env.production.kv_namespaces]]
 binding = "RATE_LIMITS"
 id = "2c2c7dc47eb44448ba93c06f45d3f984"
 
-[[kv_namespaces]]
+[[env.production.kv_namespaces]]
 binding = "FEATURE_FLAGS"
 id = "5c4baaf523b74520afb3c04c19d751a6"
 
-# R2 Bucket
-[[r2_buckets]]
+[[env.production.r2_buckets]]
 binding = "ASSETS_BUCKET"
 bucket_name = "ai-platform-assets"
 
-# Queues (producer bindings — not needed by Pages deploy but kept for completeness)
 [[queues.producers]]
 queue = "ai-tasks"
 binding = "AI_TASK_QUEUE"

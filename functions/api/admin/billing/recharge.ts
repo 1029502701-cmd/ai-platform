@@ -1,5 +1,5 @@
 import { hasRoleForRequest } from '../../../../shared/services/permission.ts';
-import { BillingService } from '../../../../shared/services/billing_service.ts';
+import { BillingService } from '../../../../shared/services/billing.service.ts';
 
 export const onRequestPost = async (context:any) => {
   const { env, request } = context;

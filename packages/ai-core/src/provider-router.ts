@@ -33,7 +33,7 @@ export async function routeToProvider(
   req: TextGenerationRequest
 ): Promise<TextGenerationResponse> {
   const provider = providers.get(modelConfig.provider);
-  if (!provider) throw new Error(PROVIDER_NOT_REGISTERED for );
+  if (!provider) throw new Error(`PROVIDER_NOT_REGISTERED: ${modelConfig.provider}`);
 
   // Merge default params with request
   const merged: TextGenerationRequest = {
@@ -52,7 +52,7 @@ export async function routeChatToProvider(
   req: ChatGenerationRequest
 ): Promise<ChatGenerationResponse> {
   const provider = providers.get(modelConfig.provider);
-  if (!provider) throw new Error(PROVIDER_NOT_REGISTERED for );
+  if (!provider) throw new Error(`PROVIDER_NOT_REGISTERED: ${modelConfig.provider}`);
 
   return provider.generateChat(req);
 }

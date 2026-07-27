@@ -1,4 +1,4 @@
-﻿;import type { AIToolDef } from "../ai/tool_registry.ts";
+﻿import type { AIToolDef } from "../ai/tool_registry.ts";
 
 export type AgentStatus = "active" | "inactive" | "draft";
 export type AgentTaskStatus = "pending" | "running" | "waiting" | "completed" | "failed" | "cancelled";

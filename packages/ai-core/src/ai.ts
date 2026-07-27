@@ -42,7 +42,7 @@ async function ensureInit(env?: any): Promise<void> {
  */
 export async function generateText(req: AITextRequest, env?: any): Promise<AIResult> {
   const start = Date.now();
-  const requestId = req.requestId || eq__;
+  const requestId = req.requestId || `-`
 
   try {
     await ensureInit(env);
@@ -63,11 +63,11 @@ export async function generateText(req: AITextRequest, env?: any): Promise<AIRes
 
     const modelCfg = modelConfigs.get(modelId);
     if (!modelCfg) {
-      return makeError(requestId, start, 'MODEL_NOT_FOUND', Model not found or disabled: );
+      return makeError(requestId, start, 'MODEL_NOT_FOUND', `Model not found or disabled: ${modelId}`);
     }
 
     if (modelCfg.status !== 'active') {
-      return makeError(requestId, start, 'MODEL_DISABLED', Model is disabled: );
+      return makeError(requestId, start, 'MODEL_DISABLED', `Model is disabled: ${modelId}`);
     }
 
     // Call provider
@@ -109,7 +109,7 @@ export async function generateText(req: AITextRequest, env?: any): Promise<AIRes
  */
 export async function generateChat(req: AIChatRequest, env?: any): Promise<AIResult> {
   const start = Date.now();
-  const requestId = req.requestId || eq__;
+  const requestId = req.requestId || `-`
 
   try {
     await ensureInit(env);
@@ -128,19 +128,19 @@ export async function generateChat(req: AIChatRequest, env?: any): Promise<AIRes
 
     const modelCfg = modelConfigs.get(modelId);
     if (!modelCfg) {
-      return makeError(requestId, start, 'MODEL_NOT_FOUND', Model not found or disabled: );
+      return makeError(requestId, start, 'MODEL_NOT_FOUND', `Model not found or disabled: ${modelId}`);
     }
 
     if (modelCfg.status !== 'active') {
-      return makeError(requestId, start, 'MODEL_DISABLED', Model is disabled: );
+      return makeError(requestId, start, 'MODEL_DISABLED', `Model is disabled: ${modelId}`);
     }
 
     // Build messages array
-    const messages: Array<{ role: string; content: string }> = [];
+    const messages: any[] = [];
     if (req.systemPrompt) {
       messages.push({ role: 'system', content: req.systemPrompt });
     }
-    messages.push(...req.messages.map(m => ({ role: m.role, content: m.content })));
+    messages.push(...req.messages.map((m: any) => ({ role: m.role, content: m.content })));
 
     // Call provider chat endpoint
     const resp = await routeChatToProvider(modelCfg, {

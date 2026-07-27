@@ -1,0 +1,11 @@
+﻿{
+  "name": "@ai-saas/shared",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./errors/index.ts",
+  "exports": {
+    "./errors": "./errors/index.ts",
+    "./logger": "./logger/index.ts",
+    "./types": "./types/index.ts"
+  }
+}

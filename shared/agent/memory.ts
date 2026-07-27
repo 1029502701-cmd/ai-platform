@@ -3,7 +3,7 @@ import type { AgentMemory } from "./types.ts";
 
 const log = getLogger("agent_memory");
 
-let conversationStore: Record<string, Array<{ role: string; content: string; ts: string }>> = {};
+const conversationStore: Record<string, Array<{ role: string; content: string; ts: string }>> = {};
 
 export class MemoryService {
   // In-memory conversation memory per user

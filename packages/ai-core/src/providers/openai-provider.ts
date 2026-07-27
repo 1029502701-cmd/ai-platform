@@ -32,7 +32,7 @@ export class OpenAIProvider extends BaseProvider {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: Bearer ,
+'Authorization': `Bearer ${this.getApiKey()}`,
         },
         body: JSON.stringify(body),
       },
@@ -40,22 +40,22 @@ export class OpenAIProvider extends BaseProvider {
       1
     );
 
-    const data = await res.json();
-    const choices = (data.choices || []).map((c: any, i: number) => ({
+    const respData: any = await res.json();
+    const choices = ((respData as any).choices || []).map((c: any, i: number) => ({
       text: c.message?.content ?? '',
       index: i,
     }));
-    const usage = data.usage
-      ? { promptTokens: data.usage.prompt_tokens, completionTokens: data.usage.completion_tokens, totalTokens: data.usage.total_tokens }
+    const usage = (respData as any).usage
+      ? { promptTokens: (respData as any).usage.prompt_tokens, completionTokens: (respData as any).usage.completion_tokens, totalTokens: (respData as any).usage.total_tokens }
       : undefined;
 
     return {
-      id: data.id || '',
-      model: data.model || model,
+      id: (respData as any).id || '',
+      model: (respData as any).model || model,
       provider: this.id,
       choices,
       usage,
-      raw: data,
+      raw: respData,
     };
   }
 

@@ -19,5 +19,5 @@ export async function getAvailableTools(): Promise<AIToolDef[]> { return toolsCa
 
 export async function executeTool(toolName: string, args: any): Promise<unknown|null> {
     log.info("Tool called",{name:toolName});
-    switch(toolName) { case "calculator": try{return{result:eval(String(args.expression))};}catch{return{error:"Invalid expression"}}; default: return{note:"Not implemented"}; }
+    switch(toolName) { case "calculator": try{return{result:eval(String(args.expression))};}catch{return{error:"Invalid expression"}} default: return{note:"Not implemented"}; }
 }

@@ -27,7 +27,7 @@ export const onRequestPost = async (context: Parameters<PagesFunction>[0]) => {
         const kbId = parseInt(String(context.params?.id || "0") || "0");
         const { title, content, mimeType: _mt, metadata } = await context.request.json() as any;
         if (!title || !content) return jsonResponse({ code: "BAD_REQUEST", message: "title and content required" }, 400);
-        let parsedText = typeof content === "string" ? content : new TextDecoder().decode(new Uint8Array(content));
+        const parsedText = typeof content === "string" ? content : new TextDecoder().decode(new Uint8Array(content));
         const res: any = await db.prepare("INSERT INTO knowledge_documents (knowledge_base_id, title, summary, content_location, metadata, status) VALUES (?, ?, ?, ?, ?, ?)").run(kbId, title, parsedText.slice(0,500), "inline:"+Date.now(), metadata ? JSON.stringify(metadata) : null, "published");
         const docId = res.lastInsertRowid as number;
         const chunks = chunkBySize(parsedText, 700, 150);

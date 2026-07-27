@@ -4,7 +4,7 @@
  */
 
 import { generateViaCore } from '../ai_core';
-import type { CoreRequest } from '../ai_core';
+import type { AIRequest } from '../ai_service';
 import { BillingService } from '../billing.service';
 
 /** Analyze an image through AI Core. */
@@ -15,7 +15,7 @@ export async function analyzeFaceWithAI(
 ): Promise<{ success: boolean; result?: any }> {
   const startTime = Date.now();
   try {
-    const coreReq: CoreRequest = {
+    const coreReq: any = {
       requestId: 'beauty_' + userId + '_' + Date.now(),
       userId,
       scenario: 'beauty_face_analysis',

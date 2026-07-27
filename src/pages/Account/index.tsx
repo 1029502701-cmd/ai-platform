@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useAuth, type GuestToken, type UserProfile, type UsageToday } from "../../stores/AuthProvider";
+
+type ApiResponse<T = unknown> = { success: true; data: T } | { success: false; error: { code: string; message: string } };
 
 export default function AccountPage() {
     const { state, refreshProfile, updateProfile, logout } = useAuth()!;
@@ -16,11 +18,13 @@ export default function AccountPage() {
                 fetch("/api/user/quota"),
                 fetch("/api/user/usage"),
             ]);
-            const p = await pRes.json();
+            const p = (await pRes.json()) as ApiResponse<{ profile: UserProfile; usageToday: UsageToday }>;
             const q = await qRes.json();
             const u = await uRes.json();
-            setProfileData(p.success ? p.data.profile : null);
-            setUsageData(p.success ? p.data.usageToday : null);
+            if (p.success) {
+                setProfileData(p.data.profile);
+                setUsageData(p.data.usageToday);
+            }
             setLoading(false);
         } catch {
             setLoading(false);
@@ -39,7 +43,7 @@ export default function AccountPage() {
 
     if (loading) return <div className="p-8 text-center">Loading account...</div>;
 
-    const user = profileData || {};
+    const user = profileData || { id: "", nickname: "Anonymous", type: "guest", avatar: "", role: "user", status: "active", created_at: new Date().toISOString(), last_login_at: null, planName: "free" };
     const gt = state.guestToken;
 
     return (
@@ -49,7 +53,7 @@ export default function AccountPage() {
             <div className="bg-white rounded-lg shadow p-6 mb-6">
                 <div className="flex items-center gap-4 mb-4">
                     <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-2xl">
-                        {user.avatar ? <img src={user.avatar} alt="" className="w-full h-full rounded-full object-cover" /> : "👤"}
+                        {user.avatar ? <img src={user.avatar} alt="" className="w-full h-full rounded-full object-cover" /> : "😊"}
                     </div>
                     <div className="flex-1">
                         {editing ? (

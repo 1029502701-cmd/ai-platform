@@ -37,7 +37,7 @@ export class AIQueueWorker {
         await this.handleTask(task);
       } catch (e: any) {
         // Log and continue
-        try { console.error('[AIQueueWorker] loop error', e?.message || e); } catch {};
+        try { console.error('[AIQueueWorker] loop error', e?.message || e); } catch {}
         await this.sleep(this.pollingIntervalMs);
       }
     }

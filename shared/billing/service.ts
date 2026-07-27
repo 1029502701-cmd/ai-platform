@@ -114,7 +114,7 @@ class BillingService {
 
     try {
       return await db.transaction(async (tx: any) => {
-        let wallet: any = await tx.prepare("SELECT id, credits FROM wallets WHERE user_id = ?").bind(params.userId).first();
+        const wallet: any = await tx.prepare("SELECT id, credits FROM wallets WHERE user_id = ?").bind(params.userId).first();
         if (!wallet) {
           await tx.prepare(
             "INSERT INTO wallets (user_id, credits, total_used, mode, status, created_at, updated_at) VALUES (?, 0, 0, 'credits', 'active', datetime('now'), datetime('now'))"

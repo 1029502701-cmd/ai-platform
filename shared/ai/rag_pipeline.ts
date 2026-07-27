@@ -178,7 +178,7 @@ export async function searchKnowledgePipeline(env: any, params: KnowledgeSearchP
     }
 
     // Build context from top results
-    let contextParts: string[] = [];
+    const contextParts: string[] = [];
     let len = 0;
     for (const r of results) {
         const text = String(r.excerpt || "");

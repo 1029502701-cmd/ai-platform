@@ -1,7 +1,7 @@
 ﻿/** Beauty Plugin service — generates reports from browser-provided face analysis data. */
 
 import { generateViaCore } from '../ai_core';
-import type { CoreRequest } from '../ai_core';
+
 import type {
   BeautyAnalysisRequest,
   BeautyReport,
@@ -113,7 +113,7 @@ async function callAIForReport(
     ).get('beauty-analysis');
     const modelId = scenarioRow?.default_model_id || undefined;
 
-    const coreReq: CoreRequest = {
+    const coreReq: any = {
       requestId: 'beauty_' + Date.now(),
       userId: faceAnalysis?._userId,
       scenario: 'beauty-analysis',

@@ -12,7 +12,7 @@ export const onRequestGet = async (context: Parameters<PagesFunction>[0]) => {
     const limit = Math.min(parseInt(url.searchParams.get("limit") || "50"), 200);
     const offset = (page - 1) * limit;
     try {
-        let where = status ? "WHERE status = ?" : "";
+        const where = status ? "WHERE status = ?" : "";
         const params: any[] = status ? [status] : [];
         const rows: any[] = await db.prepare(
             `SELECT t.*, u.nickname FROM ai_tasks t LEFT JOIN users u ON t.created_by = u.id ${where} ORDER BY t.created_at DESC LIMIT ? OFFSET ?`

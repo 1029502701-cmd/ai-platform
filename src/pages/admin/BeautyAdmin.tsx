@@ -145,7 +145,7 @@ const dateStr = (d: string | undefined) => d ? new Date(d).toLocaleString("zh-CN
 // Reports Tab
 // ════════════════════════════════════════
 
-function ReportsTab({ page, pageSize, setPageSize }: { page: number; pageSize: number; setPageSize: (p: number) => void }) {
+function ReportsTab({ page, pageSize, setPageSize, onPageChange }: { page: number; pageSize: number; setPageSize: (p: number) => void; onPageChange?: (p: number) => void }) {
   const [data, setData] = useState<ReportsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ userId: "", dateFrom: "", dateTo: "", faceShape: "" });
@@ -162,7 +162,7 @@ function ReportsTab({ page, pageSize, setPageSize }: { page: number; pageSize: n
       if (filters.dateTo) params.set("dateTo", filters.dateTo);
       if (filters.faceShape) params.set("faceShape", filters.faceShape);
       const res = await fetch("/api/admin/beauty/reports?" + params.toString());
-      const json = await res.json();
+      const json = (await res.json()) as any;
       setData(json.data || json);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -229,7 +229,7 @@ function ReportsTab({ page, pageSize, setPageSize }: { page: number; pageSize: n
           </div>
           <Pagination page={data.pagination.page} pageSize={data.pagination.pageSize}
             total={data.pagination.total} totalPages={data.pagination.totalPages}
-            onPageChange={p => setPage(p)} />
+            onPageChange={p => onPageChange?.(p)} />
         </>
       )}
     </div>
@@ -250,7 +250,7 @@ function UsersTab({ page, pageSize, setPageSize }: { page: number; pageSize: num
     setLoading(true);
     try {
       const res = await fetch("/api/admin/beauty/users?page=" + page + "&pageSize=" + pageSize);
-      const json = await res.json();
+      const json = (await res.json()) as any;
       setListData(json.data || json);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -262,7 +262,7 @@ function UsersTab({ page, pageSize, setPageSize }: { page: number; pageSize: num
     try {
       setSelectedUserId(userId);
       const res = await fetch("/api/admin/beauty/users?id=" + userId);
-      const json = await res.json();
+      const json = (await res.json()) as any;
       setDetail(json.data || json);
     } catch (e) { console.error(e); }
   };
@@ -386,7 +386,7 @@ function AILogsTab({ page, pageSize, setPageSize }: { page: number; pageSize: nu
       if (filters.status) params.set("status", filters.status);
       if (filters.userId) params.set("userId", filters.userId);
       const res = await fetch("/api/admin/beauty/ai-logs?" + params.toString());
-      const json = await res.json();
+      const json = (await res.json()) as any;
       setData(json.data || json);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -488,10 +488,10 @@ export default function BeautyAdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [page, setPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
-  useEffect(() => { setPage(1); }, [activeTab]);
+  useEffect(() => { setCurrentPage(1); }, [activeTab]);
 
   useEffect(() => {
     (async () => {
@@ -500,7 +500,7 @@ export default function BeautyAdminPage() {
         setError(null);
         const res = await fetch("/api/admin/beauty/dashboard");
         if (!res.ok) throw new Error("Dashboard API failed");
-        const body = await res.json();
+        const body = (await res.json()) as any;
         setStats(body.data || body);
       } catch (e: any) {
         console.error("[BeautyAdmin] Fetch error:", e);
@@ -569,13 +569,13 @@ export default function BeautyAdminPage() {
       )}
 
       {activeTab === "reports" && (
-        <ReportsTab page={page} pageSize={pageSize} setPageSize={setPageSize} />
+        <ReportsTab page={currentPage} pageSize={pageSize} setPageSize={setPageSize} />
       )}
       {activeTab === "users" && (
-        <UsersTab page={page} pageSize={pageSize} setPageSize={setPageSize} />
+        <UsersTab page={currentPage} pageSize={pageSize} setPageSize={setPageSize} />
       )}
       {activeTab === "logs" && (
-        <AILogsTab page={page} pageSize={pageSize} setPageSize={setPageSize} />
+        <AILogsTab page={currentPage} pageSize={pageSize} setPageSize={setPageSize} />
       )}
     </div>
   );

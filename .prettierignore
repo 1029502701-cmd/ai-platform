@@ -1,0 +1,40 @@
+﻿# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build output
+dist/
+.wrangler/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+server.log
+dev_server_output.log
+
+# Environment
+.env
+.env.local
+.dev.vars
+
+# Test assets
+tests/_r2_emulator/**/*.png
+tests/fixtures/*.png
+
+# Generated type definitions (too large)
+worker-configuration.d.ts
+
+# Platform reports
+Beauty*Report.md
+Task-Beauty-*-Report.md
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -14,10 +14,10 @@ export class MockProvider extends BaseProvider {
 
   async generateText(req: TextGenerationRequest): Promise<TextGenerationResponse> {
     return {
-      id: mock_,
+      id: "mock-default",
       model: req.model || 'mock-default',
       provider: this.id,
-      choices: [{ text: [MOCK]  }],
+      choices: [{ text: "[MOCK]"  }],
       usage: { promptTokens: 1, completionTokens: 1, totalTokens: 2 },
       raw: null,
     };
