@@ -1,4 +1,4 @@
-﻿import type { PagesFunction } from "@cloudflare/workers-types";
+import type { PagesFunction } from "@cloudflare/workers-types";
 import { requireAdminAuth, jsonResponse } from "../../../_auth.ts";
 
 const handler = async (context) => {
@@ -20,4 +20,4 @@ const handler = async (context) => {
 };
 
 export const POST = handler;
-export const handler = handler;
+
