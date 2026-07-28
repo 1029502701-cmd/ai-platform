@@ -1,10 +1,10 @@
-ï»¿// ============================================
+// ============================================
 // Shared Errors Package
-// ç»Ÿä¸€çš„ API é”™è¯¯å¤„ç†
+// Í³Ò»µÄ API ´íÎó´¦Àí
 // ============================================
 
 /**
- * API æ ‡å‡†é”™è¯¯ç æšä¸¾
+ * API ±ê×¼´íÎóÂëÃ¶¾Ù
  */
 export enum ErrorCode {
   // Authentication (1xxx)
@@ -32,7 +32,7 @@ export enum ErrorCode {
 }
 
 /**
- * æ ‡å‡† API é”™è¯¯ç±»
+ * ±ê×¼ API ´íÎóÀà
  */
 export class ApiError extends Error {
   public readonly code: ErrorCode;
@@ -67,7 +67,7 @@ export class ApiError extends Error {
     }
   }
 
-  /** åºåˆ—åŒ–åç”¨äº API JSON å“åº” */
+  /** ĞòÁĞ»¯ºóÓÃÓÚ API JSON ÏìÓ¦ */
   toJSON() {
     const obj: { success: false; error: Record<string, unknown> } = {
       success: false,
@@ -80,25 +80,26 @@ export class ApiError extends Error {
   }
 }
 
-/** å¿«æ·æ„é€ å‡½æ•° */
-export function unauthorized(msg = 'æœªæˆæƒ') {
+/** ¿ì½İ¹¹Ôìº¯Êı */
+export function unauthorized(msg = 'Î´ÊÚÈ¨') {
   return new ApiError(ErrorCode.UNAUTHORIZED, msg, 401);
 }
-export function forbidden(msg = 'æƒé™ä¸è¶³') {
+export function forbidden(msg = 'È¨ÏŞ²»×ã') {
   return new ApiError(ErrorCode.FORBIDDEN, msg, 403);
 }
-export function notFound(resource = 'èµ„æº') {
-  return new ApiError(ErrorCode.NOT_FOUND, \ ä¸å­˜åœ¨, 404);
+export function notFound(resource = '×ÊÔ´') {
+  return new ApiError(ErrorCode.NOT_FOUND, `${resource} ²»´æÔÚ`, 404);
 }
-export function validationError(msg = 'å‚æ•°æ ¡éªŒå¤±è´¥') {
+export function validationError(msg = '²ÎÊıĞ£ÑéÊ§°Ü') {
   return new ApiError(ErrorCode.VALIDATION_ERROR, msg, 400);
 }
-export function rateLimited(msg = 'è¯·æ±‚è¿‡äºé¢‘ç¹ï¼Œè¯·ç¨åé‡è¯•') {
+export function rateLimited(msg = 'ÇëÇó¹ıÓÚÆµ·±£¬ÇëÉÔºóÖØÊÔ') {
   return new ApiError(ErrorCode.RATE_LIMITED, msg, 429);
 }
-export function internal(msg = 'æœåŠ¡å™¨å†…éƒ¨é”™è¯¯') {
+export function internal(msg = '·şÎñÆ÷ÄÚ²¿´íÎó') {
   return new ApiError(ErrorCode.INTERNAL_ERROR, msg, 500);
 }
-export function serviceUnavailable(msg = 'æœåŠ¡æš‚æ—¶ä¸å¯ç”¨') {
+export function serviceUnavailable(msg = '·şÎñÔİÊ±²»¿ÉÓÃ') {
   return new ApiError(ErrorCode.SERVICE_UNAVAILABLE, msg, 503);
 }
+ -replace 'return new ApiError(ErrorCode.NOT_FOUND, \\ ²»´æÔÚ, 404);', 'return new ApiError(ErrorCode.NOT_FOUND, \\ ²»´æÔÚ\', 404);'

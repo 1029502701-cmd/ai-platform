@@ -1,4 +1,4 @@
-﻿// ============================================
+// ============================================
 // Cookie Helpers
 // Secure, httpOnly cookies for session management
 // ============================================
@@ -44,7 +44,7 @@ export function readGuestId(cookieHeader: string | null): string | null {
 
 export function createSessionCookie(sessionId: string, secure: boolean, maxAgeSeconds: number): string {
   const secureFlag = secure ? '; Secure' : '';
-  return ${SESSION_COOKIE}=; Max-Age=; Path=/; HttpOnly; SameSite=Lax;
+  return `${SESSION_COOKIE}=${sessionId}; Max-Age=${maxAgeSeconds}; Path=/; HttpOnly; SameSite=Lax${secureFlag}`;
 }
 
 export function clearSessionCookie(secure: boolean): string {
