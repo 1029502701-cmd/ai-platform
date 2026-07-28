@@ -81,7 +81,7 @@ export const onRequestPost = async (context: any) => {
     }
 
     var session = await requireOrCreateGuest(context);
-    var userId = session?.user?.id || 'anonymous';
+    userId = session?.user?.id || 'anonymous';
     var fileId = crypto.randomUUID ? crypto.randomUUID() : 'f_' + Date.now().toString(36);
     var key = 'beauty/images/' + userId + '/' + fileId + '.' + ext;
     var arrayBuffer = await file.arrayBuffer();

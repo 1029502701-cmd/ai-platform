@@ -1,4 +1,4 @@
-﻿import { jsonResponse } from "../_auth.ts";
+import { jsonResponse } from "../../_auth.ts";
 import type { PagesFunction } from "@cloudflare/workers-types";
 import { versionService } from "../../../../shared/plugin/services/plugin_version.service";
 
@@ -23,3 +23,4 @@ export const onRequestGet = async function(context) {
     },
   }, 200);
 };
+

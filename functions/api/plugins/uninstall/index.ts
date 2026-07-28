@@ -1,4 +1,4 @@
-﻿import { jsonResponse, requirePermission } from "../_auth.ts";
+import { jsonResponse, requirePermission } from "../../_auth.ts";
 import type { PagesFunction } from "@cloudflare/workers-types";
 import { managementService } from "../../../../shared/plugin/services/plugin_management.service";
 
@@ -28,3 +28,4 @@ export const onRequestPost = async function(context) {
     }, 400);
   }
 };
+

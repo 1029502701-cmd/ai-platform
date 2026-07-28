@@ -1,6 +1,6 @@
 import type { PagesFunction } from "@cloudflare/workers-types";
 import { jsonResponse } from "../../../_auth";
-import { PluginCatalogService } from "../../../../shared/plugin/services/plugin_catalog_service";
+import { PluginCatalogService } from "../../../../shared/plugin/services/plugin_catalog.service";
 
 export const onRequestGet = async (context) => {
   const { env, request, params } = context;
@@ -19,4 +19,7 @@ export const onRequestGet = async (context) => {
     return jsonResponse({ code: "INTERNAL_ERROR", message: "Failed to retrieve plugin" }, 500);
   }
 };
+
+
+
 

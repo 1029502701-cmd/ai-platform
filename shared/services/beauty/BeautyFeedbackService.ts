@@ -18,7 +18,7 @@ export class BeautyFeedbackService {
     }
   }
 
-  async getFeedbackStats(reportId?: string): Promise<{count: number, averageRating: number, comments:Array<string>>}> {
+  async getFeedbackStats(reportId?: string): Promise<{count: number, averageRating: number, comments:Array<string>}> {
     try {
       let where = "";
       let binds = [];
@@ -46,3 +46,5 @@ export class BeautyFeedbackService {
 }
 
 export default BeautyFeedbackService;
+
+

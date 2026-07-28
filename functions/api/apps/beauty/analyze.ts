@@ -5,7 +5,8 @@ import { checkAndConsumeLimit } from '../../../../shared/auth/usage.ts';
 import { BillingService } from '../../../../shared/services/billing.service.ts';
 import { updateUserProfile } from '../../../../shared/user/profile.ts';
 import { AnalyzeBeautyRequestSchema, type AnalyzeBeautyRequest } from '../../../../shared/validation/beauty.schema.ts';
-import { getBeautyEventService } from '../../../../shared/services/beauty/BeautyEventService'\nimport { isFeatureEnabled } from "../../../../shared/featureFlags";
+import { getBeautyEventService } from '../../../../shared/services/beauty/BeautyEventService'
+import { isFeatureEnabled } from '../../../../shared/featureFlags';
 
 function extractImageKey(url: string): string | null {
   try {
