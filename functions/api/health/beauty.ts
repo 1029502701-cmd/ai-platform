@@ -43,7 +43,7 @@ async function checkAI(env: any): CheckResult {
     }
   }
   if (activeCount >= 1) {
-    return { ok: true, message: ${activeCount} AI provider(s) configured };
+    return { ok: true, message: \\ AI provider(s) configured\};
   }
   return { ok: false, message: 'No API keys configured for AI providers' };
 }
@@ -99,4 +99,5 @@ export const onRequestGet: PagesFunction = async (context) => {
     });
   }
 };
+
 
