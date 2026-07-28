@@ -1,1 +1,47 @@
-import { readSessionId } from "../../../../shared/auth/cookies.ts";\nimport { getSession } from "../../../../shared/auth/session.ts";\nimport { getBeautyFeedbackService } from "../../../../shared/services/beauty/BeautyFeedbackService";\n\nexport const onRequestPost = async (context: any) => {\n  // Auth: require session\n  const sessionId = readSessionId(context.request.headers.get(\"Cookie\"));\n  let userId: string | null = null;\n  if (sessionId) {\n    const session = await getSession(context.env, sessionId);\n    if (session && session.user?.id) userId = session.user.id;\n  }\n\n  if (!userId) {\n    return new Response(JSON.stringify({\n      success: false,\n      error: { code: \"UNAUTHENTICATED\", message: \"Authentication required\" }\n    }), { status: 401, headers: { \"Content-Type\": \"application/json\" } });\n  }\n\n  try {\n    const body = await context.request.json();\n    const reportId = body.reportId;\n    const rating = body.rating;\n    const comment = body.comment || undefined;\n\n    if (!reportId || !rating || rating < 1 || rating > 5) {\n      return new Response(JSON.stringify({\n        success: false,\n        error: { code: \"INVALID_INPUT\", message: \"Required: reportId (string), rating (1-5)\" }\n      }), { status: 400, headers: { \"Content-Type\": \"application/json\" } });\n    }\n\n    const feedbackService = getBeautyFeedbackService(context.env?.DB);\n    if (feedbackService && context.env?.DB) {\n      await feedbackService.createFeedback(userId, reportId, rating, comment);\n    }\n\n    return new Response(JSON.stringify({ success: true, data: { message: \"Feedback submitted\" } }), { status: 200, headers: { \"Content-Type\": \"application/json\" } });\n  } catch (e: any) {\n    return new Response(JSON.stringify({\n      success: false,\n      error: { code: \"INTERNAL_ERROR\", message: \"Failed to submit feedback\" }\n    }), { status: 500, headers: { \"Content-Type\": \"application/json\" } });\n  }\n};
+import { readSessionId } from "../../../../shared/auth/cookies.ts";
+import { getSession } from "../../../../shared/auth/session.ts";
+import { getBeautyFeedbackService } from "../../../../shared/services/beauty/BeautyFeedbackService";
+
+export const onRequestPost = async (context: any) => {
+  // Auth: require session
+  const sessionId = readSessionId(context.request.headers.get("Cookie"));
+  let userId: string | null = null;
+  if (sessionId) {
+    const session = await getSession(context.env, sessionId);
+    if (session && session.user?.id) userId = session.user.id;
+  }
+
+  if (!userId) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: { code: "UNAUTHENTICATED", message: "Authentication required" }
+    }), { status: 401, headers: { "Content-Type": "application/json" } });
+  }
+
+  try {
+    const body = await context.request.json();
+    const reportId = body.reportId;
+    const rating = body.rating;
+    const comment = body.comment || undefined;
+
+    if (!reportId || !rating || rating < 1 || rating > 5) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: { code: "INVALID_INPUT", message: "Required: reportId (string), rating (1-5)" }
+      }), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+
+    const feedbackService = getBeautyFeedbackService(context.env?.DB);
+    if (feedbackService && context.env?.DB) {
+      await feedbackService.createFeedback(userId, reportId, rating, comment);
+    }
+
+    return new Response(JSON.stringify({ success: true, data: { message: "Feedback submitted" } }), { status: 200, headers: { "Content-Type": "application/json" } });
+  } catch (e: any) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: { code: "INTERNAL_ERROR", message: "Failed to submit feedback" }
+    }), { status: 500, headers: { "Content-Type": "application/json" } });
+  }
+};
+
