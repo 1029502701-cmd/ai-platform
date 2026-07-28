@@ -1,0 +1,13 @@
+# Cloudflare Pages Build Configuration
+
+CF Pages GitHub Connect uses Settings > Build & Deploy > Build command.
+This must be set to: npm ci && npm run build
+Node.js version: 20.x
+
+If build_command is NOT set in Dashboard, CF Pages auto-detects based on framework.
+For this project, it should detect Vite/React but may fail because:
+- It tries `vite build` directly without running npm install first
+- It may use an old Node version
+
+The .node-version file and package.json engines field help, but the 
+build_command MUST be explicitly set in CF Dashboard.
