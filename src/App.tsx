@@ -1,4 +1,4 @@
-﻿import { Navigate, Route, Routes, Outlet } from "react-router";
+import { Navigate, Route, Routes, Outlet } from "react-router";
 import Layout from "./components/layout/Layout";
 import AdminLayout from "./pages/admin/Layout";
 import AdminDashboardPage from "./pages/admin/Dashboard";
@@ -14,7 +14,6 @@ import BeautyProfilePage from "./pages/beauty/BeautyProfile";
 import MonitorPage from "./pages/Monitor";
 // @ts-ignore
 import AccountPage from "./pages/Account";
-declare const AccountPage: any;
 import DevelopersPage from "./pages/Developers";
 import OpenApiPlayground from "./pages/OpenApiPlayground";
 import MarketplacePage from "./pages/Marketplace";
