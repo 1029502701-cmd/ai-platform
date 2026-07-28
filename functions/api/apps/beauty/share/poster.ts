@@ -1,6 +1,6 @@
-import { readSessionId } from '../../../../shared/auth/cookies.ts';
-import { getSession } from '../../../../shared/auth/session.ts';
-import { getBeautyEventService } from '../../../../shared/services/beauty/BeautyEventService';
+import { readSessionId } from '../../../../../shared/auth/cookies.ts';
+import { getSession } from '../../../../../shared/auth/session.ts';
+import { getBeautyEventService } from '../../../../../shared/services/beauty/BeautyEventService';
 
 export const onRequestPost = async (context: any) => {
   let userId: string | null = null;
@@ -68,4 +68,3 @@ export const onRequestPost = async (context: any) => {
     return new Response(JSON.stringify({ success: false, error: { code: 'INTERNAL_ERROR', message: e.message || 'Poster generation failed' } }), { status: 500, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
   }
 };
-

@@ -36,4 +36,8 @@ export class BeautyEventService {
   }
 }
 
+export function getBeautyEventService(db: D1Database): BeautyEventService { return new BeautyEventService(db); }
+
 export default BeautyEventService;
+
+

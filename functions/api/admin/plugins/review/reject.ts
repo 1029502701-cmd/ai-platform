@@ -1,6 +1,6 @@
 import type { PagesFunction } from '@cloudflare/workers-types';
 import { requireAdminAuth, jsonResponse } from '../../../admin/_auth';
-import { PluginPublishService } from '../../../../shared/plugin/services/plugin_publish_service';
+import { PluginPublishService } from "../../../../../shared/plugin/services/plugin_publish_service";
 
 export const onRequestPost = async (context) => {
   const auth = await requireAdminAuth(context);

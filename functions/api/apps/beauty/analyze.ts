@@ -5,7 +5,7 @@ import { checkAndConsumeLimit } from '../../../../shared/auth/usage.ts';
 import { BillingService } from '../../../../shared/services/billing.service.ts';
 import { updateUserProfile } from '../../../../shared/user/profile.ts';
 import { AnalyzeBeautyRequestSchema, type AnalyzeBeautyRequest } from '../../../../shared/validation/beauty.schema.ts';
-import { getBeautyEventService } from '../../../../shared/services/beauty/BeautyEventService'
+import { getBeautyEventService } from "../../../../shared/services/beauty/BeautyEventService";
 import { isFeatureEnabled } from '../../../../shared/featureFlags';
 
 function extractImageKey(url: string): string | null {
@@ -158,6 +158,8 @@ export const onRequestPost = async (context: any) => {
     return new Response(JSON.stringify({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Analysis failed' } }), { status: 500, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
   }
 };
+
+
 
 
 
