@@ -45,6 +45,10 @@ export class BeautyFeedbackService {
   }
 }
 
+export function getBeautyFeedbackService(db: D1Database) {
+  return new BeautyFeedbackService(db);
+}
+
 export default BeautyFeedbackService;
 
 

@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 
 export interface GuestToken {
     userId: string;
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const refreshProfile = async () => {
         try {
-            const res = await fetch("/api/user/profile");
+            let url = "/api/user/profile"; if (state.guestToken && state.guestToken.guestToken) { url += "?guestToken=" + encodeURIComponent(state.guestToken.guestToken); }; const res = await fetch(url)
             const data = await res.json() as any;
             if (data.success && data.data) {
                 setState(prev => ({ ...prev, user: data.data.profile, error: null }));
@@ -135,3 +135,7 @@ export function useAuth() {
     if (!ctx) throw new Error("useAuth must be inside AuthProvider");
     return ctx;
 }
+
+
+
+

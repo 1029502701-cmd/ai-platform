@@ -1,15 +1,41 @@
 import type { PagesFunction } from "@cloudflare/workers-types";
 import { jsonResponse, requireUserAuth } from "../../_auth.ts";
+import { getSession } from "../../../shared/auth/session.ts";
 
 export const onRequestGet = async (context: Parameters<PagesFunction>[0]) => {
+    let userId: string | null = null;
+    let session: any | null = null;
+
+    // First try authenticated session via cookie
     const auth = await requireUserAuth(context);
-    if (!auth) return jsonResponse({ code: "UNAUTHENTICATED", message: "Login required" }, 401);
+    if (auth) {
+        userId = auth.user.id;
+        session = auth.session;
+    } else {
+        // Check for guest token in query parameters
+        const url = new URL(context.request.url, "http://localhost");
+        const guestToken = url.searchParams.get("guestToken");
+        if (guestToken) {
+            const env = context.env as any;
+            const potentialSession = await getSession(env, guestToken);
+            if (potentialSession && potentialSession.user?.id) {
+                userId = potentialSession.user.id;
+                session = potentialSession;
+            }
+        }
+    }
+
+    if (!userId) {
+        return jsonResponse({ code: "UNAUTHENTICATED", message: "Login required" }, 401);
+    }
+
     const env = context.env as any;
     const db = env.DB;
-    const userId = auth.user.id;
 
     try {
-        const user: any = await db.prepare("SELECT id, nickname, avatar, type, role, status, created_at, last_login_at FROM users WHERE id = ?").bind(userId).first();
+        const user: any = await db.prepare(
+            "SELECT id, nickname, avatar, type, role, status, created_at, last_login_at FROM users WHERE id = ?"
+        ).bind(userId).first();
         if (!user) return jsonResponse({ code: "NOT_FOUND" }, 404);
 
         // Usage today
@@ -18,7 +44,9 @@ export const onRequestGet = async (context: Parameters<PagesFunction>[0]) => {
         ).bind(userId).first();
 
         // Plan info
-        const planAssign: any = await db.prepare("SELECT plan_name FROM user_plan_assignments WHERE user_id = ?").bind(userId).first();
+        const planAssign: any = await db.prepare(
+            "SELECT plan_name FROM user_plan_assignments WHERE user_id = ?"
+        ).bind(userId).first();
 
         return jsonResponse({
             profile: { ...user, planName: planAssign?.plan_name || "free" },

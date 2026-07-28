@@ -31,7 +31,7 @@ async function requireOrCreateGuest(context: any) {
   const nickname = 'Guest-' + userId.slice(-6);
   const now = new Date().toISOString();
   try {
-    await context.env.db.prepare('INSERT INTO users (id, nickname, type, role, status, created_at, updated_at) VALUES (?, ?, \'guest\', \'user\', \'active\', ?, ?)').bind(userId, nickname, now, now).run();
+    await context.env.DB.prepare('INSERT INTO users (id, nickname, type, role, status, created_at, updated_at) VALUES (?, ?, \'guest\', \'user\', \'active\', ?, ?)').bind(userId, nickname, now, now).run();
   } catch (_) {}
   const result = await createSession(context.env, { id: userId, email: '', role: 'user', status: 'active' });
   return result.session;
@@ -111,4 +111,5 @@ export const onRequestPost = async (context: any) => {
     return errorResponse('UPLOAD_FAILED', (e as any)?.message || 'Upload failed', 500);
   }
 };
+
 
