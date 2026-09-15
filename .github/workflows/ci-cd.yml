@@ -26,13 +26,13 @@ jobs:
       - name: Build frontend
         run: npm run build
 
-      - name: Build Pages Functions (local esbuild)
+      - name: Build Pages Functions
         run: |
           mkdir -p dist/_fn
           npx wrangler pages functions build functions --outdir dist/_fn
 
       - name: Deploy Pages (static + functions)
-        run: npx wrangler pages deploy dist --project-name ai-platform-boa
+        run: npx wrangler pages deploy dist --project-name ai-companion-frontend --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
